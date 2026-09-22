@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#050505" />
+      <stop offset="50%" stop-color="#0a0a0c" />
+      <stop offset="100%" stop-color="#020202" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="50%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#8b5cf6" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#16161a" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#0e0e11" stop-opacity="0.9" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+    <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#ffffff" stroke-width="0.5" stroke-opacity="0.04" />
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="420" fill="url(#bgGrad)" />
+  <rect width="1200" height="420" fill="url(#grid)" />
+  <rect width="1200" height="420" fill="url(#glow)" />
+
+  <!-- Top Accent Bar -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accentGrad)" />
+
+  <!-- Outer Frame -->
+  <rect x="24" y="24" width="1152" height="372" rx="16" fill="none" stroke="#262626" stroke-width="1" stroke-opacity="0.8" />
+
+  <!-- Central Header Graphic -->
+  <g transform="translate(60, 90)">
+    <!-- Brand Icon -->
+    <rect x="0" y="0" width="64" height="64" rx="14" fill="#0f1715" stroke="#10b981" stroke-width="1.5" stroke-opacity="0.5" />
+    <path d="M 22 22 L 32 28 L 32 46 L 22 40 Z" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linejoin="round" />
+    <path d="M 42 22 L 32 28 L 32 46 L 42 40 Z" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linejoin="round" />
+    <circle cx="32" cy="28" r="2" fill="#ffffff" />
+
+    <!-- Title and Subtitles -->
+    <text x="84" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="900" fill="#ffffff" letter-spacing="1">
+      LECTOR MANGA
+    </text>
+    <text x="84" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#10b981" letter-spacing="2">
+      SUITE DE LECTURA MINIMALISTA TIPO TACHIYOMI &amp; TACHIMANGA
+    </text>
+
+    <!-- Description -->
+    <text x="0" y="115" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="16" font-weight="400" fill="#a1a1aa">
+      Lector de Manhwas, Mangas y Webtoons de alto rendimiento construido con Next.js 16, React 19 y Tailwind CSS.
+    </text>
+    <text x="0" y="140" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#71717a">
+      Web Scraping en tiempo real para Olympus Scan &amp; MangaDex • Modo Cascada Gapless • Proxy Anti-Hotlinking • Despliegue en Vercel
+    </text>
+
+    <!-- Feature Badges -->
+    <g transform="translate(0, 175)">
+      <!-- Badge 1 -->
+      <rect x="0" y="0" width="180" height="34" rx="8" fill="#121214" stroke="#27272a" stroke-width="1" />
+      <circle cx="16" cy="17" r="4" fill="#10b981" />
+      <text x="28" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#d4d4d8">
+        OLYMPUS SCAN API
+      </text>
+
+      <!-- Badge 2 -->
+      <rect x="195" y="0" width="165" height="34" rx="8" fill="#121214" stroke="#27272a" stroke-width="1" />
+      <circle cx="211" cy="17" r="4" fill="#06b6d4" />
+      <text x="223" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#d4d4d8">
+        MANGADEX API v5
+      </text>
+
+      <!-- Badge 3 -->
+      <rect x="375" y="0" width="180" height="34" rx="8" fill="#121214" stroke="#27272a" stroke-width="1" />
+      <circle cx="391" cy="17" r="4" fill="#8b5cf6" />
+      <text x="403" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#d4d4d8">
+        LECTOR LOCAL OFFLINE
+      </text>
+
+      <!-- Badge 4 -->
+      <rect x="570" y="0" width="175" height="34" rx="8" fill="#121214" stroke="#27272a" stroke-width="1" />
+      <circle cx="586" cy="17" r="4" fill="#10b981" />
+      <text x="598" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#d4d4d8">
+        DMCA COMPLIANT ARCH
+      </text>
+    </g>
+  </g>
+
+  <!-- Right Decorative UI Card Preview -->
+  <g transform="translate(860, 65)">
+    <rect width="270" height="290" rx="14" fill="url(#cardGrad)" stroke="#27272a" stroke-width="1" />
+    <rect x="16" y="16" width="238" height="150" rx="8" fill="#09090b" stroke="#1f1f23" stroke-width="1" />
+    <circle cx="135" cy="80" r="24" fill="#18181b" />
+    <path d="M 130 72 L 144 80 L 130 88 Z" fill="#10b981" />
+    <text x="135" y="125" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#71717a">WEBTOON CONTINUOUS HUD</text>
+    
+    <rect x="16" y="180" width="160" height="12" rx="4" fill="#27272a" />
+    <rect x="16" y="200" width="100" height="8" rx="3" fill="#1f1f23" />
+    
+    <rect x="16" y="235" width="238" height="36" rx="8" fill="#10b981" fill-opacity="0.1" stroke="#10b981" stroke-width="1" stroke-opacity="0.3" />
+    <text x="135" y="258" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#10b981">LEER AHORA</text>
+  </g>
+</svg>
