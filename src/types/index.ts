@@ -104,3 +104,33 @@ export interface MangaReadingStats {
   lastReadTimestamp: number;
 }
 
+export interface MihonManga {
+  sourceId: string;
+  sourceName?: string;
+  url: string;
+  title: string;
+  artist?: string;
+  author?: string;
+  description?: string;
+  thumbnailUrl?: string;
+  favorite: boolean;
+  totalChapters: number;
+  readChapters: number;
+  lastReadChapterName?: string;
+  chapters: Array<{
+    name: string;
+    url: string;
+    read: boolean;
+    chapterNumber: number;
+    lastPageRead: number;
+  }>;
+}
+
+export interface MihonBackupResult {
+  mangas: MihonManga[];
+  totalMangas: number;
+  totalChaptersRead: number;
+  sources: Record<string, string>;
+  categories: string[];
+}
+

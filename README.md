@@ -89,14 +89,14 @@
   </tr>
   <tr>
     <td width="50%">
-      <img src="https://img.shields.io/badge/STATS-READING_TIME_TRACKING-f59e0b?style=flat-square" alt="Stats" /><br/>
-      <b>Estadísticas de Lectura & Ranking Top</b><br/>
-      Contador de tiempo activo con detección de inactividad (60s) y Page Visibility API. Top mangas en ranking descendente con barras porcentuales relativas y acceso directo.
+      <img src="https://img.shields.io/badge/STATS-MIHON_&_TACHIMANGA-f59e0b?style=flat-square" alt="Stats" /><br/>
+      <b>Estadísticas de Biblioteca & Tiempo de Lectura</b><br/>
+      Contador de series en biblioteca, capítulos totales leídos, desglose por estado y ranking descendente por tiempo activo con detección de inactividad (60s).
     </td>
     <td width="50%">
-      <img src="https://img.shields.io/badge/QUALITY-CRISP_HD_COVERS-10b981?style=flat-square" alt="HD Covers" /><br/>
-      <b>Portadas en Alta Definición Optimizadas</b><br/>
-      Carga inteligente de portadas en formato WebP de alta fidelidad sin pixelación ni consumo excesivo de ancho de banda.
+      <img src="https://img.shields.io/badge/SYNC-MIHON_PROTOBUF_BACKUP-10b981?style=flat-square" alt="Mihon Backup" /><br/>
+      <b>Importador de Backups Mihon & Tachiyomi</b><br/>
+      Descompresor y decodificador nativo de archivos <code>.tachibk</code>, <code>.proto.gz</code> y <code>.json</code>. Migración instantánea de biblioteca, capítulos y portadas con privacidad local.
     </td>
   </tr>
 </table>

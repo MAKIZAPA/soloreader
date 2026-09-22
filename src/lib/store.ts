@@ -5,6 +5,7 @@ import {
   LibraryEntry,
   MangaItem,
   MangaReadingStats,
+  MihonManga,
   ReaderSettings,
   SourceId,
 } from "@/types";
@@ -43,6 +44,10 @@ interface AppState {
     seconds: number
   ) => void;
   clearStats: () => void;
+
+  // Mihon / Tachiyomi Backup Integration
+  importMihonBackup: (mangas: MihonManga[], mode?: "merge" | "replace") => void;
+  exportBackup: () => string;
 
   // Reader Settings
   readerSettings: ReaderSettings;
@@ -166,6 +171,93 @@ export const useAppStore = create<AppState>()(
           };
         }),
       clearStats: () => set({ stats: {} }),
+
+      importMihonBackup: (mangas, mode = "merge") =>
+        set((state) => {
+          const nextLibrary = mode === "replace" ? {} : { ...state.library };
+          const nextStats = mode === "replace" ? {} : { ...state.stats };
+
+          for (const m of mangas) {
+            // Determine source
+            let mappedSource: SourceId = "olympus";
+            const sName = (m.sourceName || "").toLowerCase();
+            const sUrl = (m.url || "").toLowerCase();
+
+            if (sName.includes("dragon") || sUrl.includes("dragontranslation")) {
+              mappedSource = "dragon";
+            } else if (sName.includes("dex") || sUrl.includes("mangadex")) {
+              mappedSource = "mangadex";
+            } else if (sName.includes("olympus") || sUrl.includes("olympus")) {
+              mappedSource = "olympus";
+            } else {
+              mappedSource = "olympus";
+            }
+
+            // Extract clean id/slug
+            const cleanId =
+              m.url
+                .replace(/^https?:\/\/[^/]+/, "")
+                .replace(/^\/+|\/+$/g, "")
+                .split("/")
+                .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+            const key = `${mappedSource}:${cleanId}`;
+            const isCompleted = m.totalChapters > 0 && m.readChapters >= m.totalChapters;
+
+            nextLibrary[key] = {
+              manga: {
+                id: cleanId,
+                source: mappedSource,
+                title: m.title,
+                slug: cleanId,
+                coverUrl: m.thumbnailUrl || "",
+                synopsis: m.description,
+              },
+              addedAt: Date.now(),
+              status: isCompleted ? "completed" : "reading",
+              totalChaptersRead: m.readChapters,
+              lastReadChapterNumber:
+                m.lastReadChapterName || (m.readChapters > 0 ? String(m.readChapters) : undefined),
+              lastReadAt: Date.now(),
+            };
+
+            // Also register in reading stats if readChapters > 0
+            if (m.readChapters > 0) {
+              const currentStat = nextStats[key];
+              const estimatedSeconds = m.readChapters * 180;
+              nextStats[key] = {
+                mangaId: cleanId,
+                source: mappedSource,
+                mangaTitle: m.title,
+                mangaCover: m.thumbnailUrl || "",
+                totalSeconds: currentStat
+                  ? Math.max(currentStat.totalSeconds, estimatedSeconds)
+                  : estimatedSeconds,
+                sessionsCount: currentStat
+                  ? currentStat.sessionsCount + m.readChapters
+                  : m.readChapters,
+                lastReadTimestamp: Date.now(),
+              };
+            }
+          }
+
+          return {
+            library: nextLibrary,
+            stats: nextStats,
+          };
+        }),
+
+      exportBackup: () => {
+        const state = get();
+        const exportData = {
+          version: "1.0",
+          exportedAt: new Date().toISOString(),
+          library: state.library,
+          stats: state.stats,
+          history: state.history,
+        };
+        return JSON.stringify(exportData, null, 2);
+      },
 
       readerSettings: DEFAULT_SETTINGS,
       updateReaderSettings: (partial) =>

@@ -16,6 +16,7 @@ import {
   BarChart3,
   Trophy,
   ArrowUpRight,
+  Layers,
 } from "lucide-react";
 import { MangaItem } from "@/types";
 import { useAppStore } from "@/lib/store";
@@ -24,6 +25,7 @@ import { MangaGrid } from "@/components/manga/MangaGrid";
 import { SearchModal } from "@/components/layout/SearchModal";
 import { LegalModal } from "@/components/legal/LegalModal";
 import { LocalReaderModal } from "@/components/local/LocalReaderModal";
+import { BackupModal } from "@/components/backup/BackupModal";
 import { formatProxyUrl, optimizeCoverUrl, formatDuration, formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -49,6 +51,7 @@ export default function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
   const [localOpen, setLocalOpen] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
 
   // Library filter
   const [libraryFilter, setLibraryFilter] = useState<string>("all");
@@ -94,6 +97,20 @@ export default function HomePage() {
     if (libraryFilter === "all") return true;
     return entry.status === libraryFilter;
   });
+
+  // Library statistics (Mihon Style)
+  const totalLibraryMangas = libraryEntries.length;
+  const totalLibraryChaptersRead = libraryEntries.reduce(
+    (acc, curr) => acc + (curr.totalChaptersRead || 0),
+    0
+  );
+  const readingCount = libraryEntries.filter((e) => e.status === "reading").length;
+  const completedCount = libraryEntries.filter((e) => e.status === "completed").length;
+  const planToReadCount = libraryEntries.filter((e) => e.status === "plan_to_read").length;
+
+  const olympusCount = libraryEntries.filter((e) => e.manga.source === "olympus").length;
+  const dragonCount = libraryEntries.filter((e) => e.manga.source === "dragon").length;
+  const mangadexCount = libraryEntries.filter((e) => e.manga.source === "mangadex").length;
 
   // Reading statistics (Tachimanga Style)
   const statsList = Object.values(stats).sort((a, b) => b.totalSeconds - a.totalSeconds);
@@ -439,74 +456,240 @@ export default function HomePage() {
         {activeTab === "stats" && (
           <div className="space-y-6">
             {/* Header / Summary Cards */}
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
                 <BarChart3 className="size-4 text-amber-400" />
-                <span>Estadísticas de Lectura</span>
+                <span>Estadísticas Generales</span>
               </h3>
 
-              {statsList.length > 0 && (
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (window.confirm("¿Deseas reiniciar todas las estadísticas de lectura acumuladas?")) {
-                      clearStats();
-                    }
-                  }}
-                  className="flex items-center gap-1.5 self-start sm:self-auto rounded-lg bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:text-red-400 hover:border-red-900/50 transition"
+                  onClick={() => setBackupOpen(true)}
+                  className="flex items-center gap-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 transition"
                 >
-                  <Trash2 className="size-3.5" />
-                  <span>Reiniciar Estadísticas</span>
+                  <Layers className="size-3.5" />
+                  <span>Copia de Seguridad & Mihon</span>
                 </button>
+
+                {statsList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm("¿Deseas reiniciar todas las estadísticas de lectura acumuladas?")) {
+                        clearStats();
+                      }
+                    }}
+                    className="flex items-center gap-1.5 self-start sm:self-auto rounded-xl bg-neutral-900 border border-neutral-800 px-3 py-1.5 text-xs text-neutral-400 hover:text-red-400 hover:border-red-900/50 transition"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Reiniciar</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* SECCIÓN 1: ESTADÍSTICAS DE BIBLIOTECA (ESTILO MIHON) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                  <Bookmark className="size-3.5 text-cyan-400" />
+                  <span>Biblioteca & Capítulos Leídos</span>
+                </h4>
+                <span className="text-xs font-mono text-neutral-400">
+                  {totalLibraryMangas} {totalLibraryMangas === 1 ? "serie" : "series"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">En Biblioteca</span>
+                    <Bookmark className="size-4 text-cyan-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {totalLibraryMangas}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Series guardadas</p>
+                </div>
+
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Capítulos Leídos</span>
+                    <BookOpen className="size-4 text-emerald-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-emerald-400">
+                    {totalLibraryChaptersRead}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Total completados</p>
+                </div>
+
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">En Lectura</span>
+                    <TrendingUp className="size-4 text-amber-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {readingCount}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Obras en curso activo</p>
+                </div>
+
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Completados</span>
+                    <ShieldCheck className="size-4 text-purple-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {completedCount}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Obras finalizadas</p>
+                </div>
+              </div>
+
+              {/* Status breakdown bar & source badges if library is populated */}
+              {totalLibraryMangas > 0 ? (
+                <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">Distribución de Estados</span>
+                    <span className="text-neutral-300 font-mono">
+                      {Math.round((completedCount / totalLibraryMangas) * 100)}% completado
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="flex h-2 w-full rounded-full overflow-hidden bg-neutral-900 border border-neutral-800">
+                    {readingCount > 0 && (
+                      <div
+                        style={{ width: `${(readingCount / totalLibraryMangas) * 100}%` }}
+                        className="bg-amber-400"
+                        title={`Leyendo: ${readingCount}`}
+                      />
+                    )}
+                    {completedCount > 0 && (
+                      <div
+                        style={{ width: `${(completedCount / totalLibraryMangas) * 100}%` }}
+                        className="bg-emerald-400"
+                        title={`Completados: ${completedCount}`}
+                      />
+                    )}
+                    {planToReadCount > 0 && (
+                      <div
+                        style={{ width: `${(planToReadCount / totalLibraryMangas) * 100}%` }}
+                        className="bg-neutral-600"
+                        title={`Por Leer: ${planToReadCount}`}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px]">
+                    <div className="flex items-center gap-4 text-neutral-400">
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-amber-400" />
+                        <span>Leyendo ({readingCount})</span>
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full bg-emerald-400" />
+                        <span>Completados ({completedCount})</span>
+                      </span>
+                      {planToReadCount > 0 && (
+                        <span className="flex items-center gap-1.5">
+                          <span className="size-2 rounded-full bg-neutral-600" />
+                          <span>Por Leer ({planToReadCount})</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-neutral-400 font-mono">
+                      <span>Fuentes:</span>
+                      {olympusCount > 0 && (
+                        <span className="rounded bg-neutral-900 border border-neutral-800 px-1.5 py-0.2 text-[10px] text-emerald-400">
+                          Olympus ({olympusCount})
+                        </span>
+                      )}
+                      {dragonCount > 0 && (
+                        <span className="rounded bg-neutral-900 border border-neutral-800 px-1.5 py-0.2 text-[10px] text-rose-400">
+                          Dragon ({dragonCount})
+                        </span>
+                      )}
+                      {mangadexCount > 0 && (
+                        <span className="rounded bg-neutral-900 border border-neutral-800 px-1.5 py-0.2 text-[10px] text-cyan-400">
+                          MangaDex ({mangadexCount})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between rounded-xl border border-dashed border-neutral-800 bg-neutral-950/40 p-3.5 text-xs text-neutral-400">
+                  <span>Tu biblioteca aún no tiene mangas guardados.</span>
+                  <button
+                    type="button"
+                    onClick={() => setBackupOpen(true)}
+                    className="text-emerald-400 hover:underline font-semibold"
+                  >
+                    Importar backup de Mihon (.tachibk)
+                  </button>
+                </div>
               )}
             </div>
 
-            {/* Metric KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-400">Tiempo Total</span>
-                  <Clock className="size-4 text-amber-400" />
-                </div>
-                <div className="mt-2 text-xl font-bold font-mono text-white">
-                  {formatDuration(totalReadingSeconds)}
-                </div>
-                <p className="text-[11px] text-neutral-400 mt-1">Tiempo activo en el lector</p>
+            {/* SECCIÓN 2: TIEMPO ACTIVO & RANKING TOP */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+                  <Clock className="size-3.5 text-amber-400" />
+                  <span>Tiempo Activo de Lectura</span>
+                </h4>
               </div>
 
-              <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-400">Series Leídas</span>
-                  <BookOpen className="size-4 text-emerald-400" />
+              {/* Metric KPI Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Tiempo Total</span>
+                    <Clock className="size-4 text-amber-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {formatDuration(totalReadingSeconds)}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Tiempo activo en el lector</p>
                 </div>
-                <div className="mt-2 text-xl font-bold font-mono text-white">
-                  {statsList.length}
-                </div>
-                <p className="text-[11px] text-neutral-400 mt-1">Obras con tiempo registrado</p>
-              </div>
 
-              <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-400">Sesiones</span>
-                  <TrendingUp className="size-4 text-cyan-400" />
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Series Leídas</span>
+                    <BookOpen className="size-4 text-emerald-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {statsList.length}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Obras con tiempo registrado</p>
                 </div>
-                <div className="mt-2 text-xl font-bold font-mono text-white">
-                  {totalSessions}
-                </div>
-                <p className="text-[11px] text-neutral-400 mt-1">Sesiones de lectura abiertas</p>
-              </div>
 
-              <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-400">Top Manga</span>
-                  <Trophy className="size-4 text-amber-400" />
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Sesiones</span>
+                    <TrendingUp className="size-4 text-cyan-400" />
+                  </div>
+                  <div className="mt-2 text-xl font-bold font-mono text-white">
+                    {totalSessions}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">Sesiones de lectura abiertas</p>
                 </div>
-                <div className="mt-2 text-sm font-bold text-white truncate">
-                  {statsList[0]?.mangaTitle || "—"}
+
+                <div className="rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-400">Top Manga</span>
+                    <Trophy className="size-4 text-amber-400" />
+                  </div>
+                  <div className="mt-2 text-sm font-bold text-white truncate">
+                    {statsList[0]?.mangaTitle || "—"}
+                  </div>
+                  <p className="text-[11px] text-neutral-400 mt-1">
+                    {statsList[0] ? formatDuration(statsList[0].totalSeconds) : "Sin lecturas aún"}
+                  </p>
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-1">
-                  {statsList[0] ? formatDuration(statsList[0].totalSeconds) : "Sin lecturas aún"}
-                </p>
               </div>
             </div>
 
@@ -662,6 +845,7 @@ export default function HomePage() {
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <LegalModal isOpen={legalOpen} onClose={() => setLegalOpen(false)} />
       <LocalReaderModal isOpen={localOpen} onClose={() => setLocalOpen(false)} />
+      <BackupModal isOpen={backupOpen} onClose={() => setBackupOpen(false)} />
     </div>
   );
 }
