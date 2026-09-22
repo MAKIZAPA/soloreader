@@ -18,7 +18,7 @@ export default async function MangaDetailPage({ params }: PageProps) {
   const sourceId = rawSource as SourceId;
   const decodedId = decodeURIComponent(rawId);
 
-  if (sourceId !== "olympus" && sourceId !== "mangadex") {
+  if (sourceId !== "olympus" && sourceId !== "dragon" && sourceId !== "mangadex") {
     notFound();
   }
 

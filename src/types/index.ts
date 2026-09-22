@@ -1,4 +1,4 @@
-export type SourceId = "olympus" | "mangadex" | "local";
+export type SourceId = "olympus" | "dragon" | "mangadex" | "local";
 
 export interface MangaItem {
   id: string;

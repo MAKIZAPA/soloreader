@@ -8,6 +8,7 @@ import {
   BookOpen,
   ArrowUpDown,
   Search,
+  ExternalLink,
   Layers,
 } from "lucide-react";
 import { MangaDetails } from "@/types";
@@ -182,6 +183,24 @@ export function MangaDetailClient({ details }: MangaDetailClientProps) {
                   Capítulos no disponibles
                 </button>
               )}
+
+              {/* External source support button */}
+              <a
+                href={
+                  details.source === "olympus"
+                    ? `https://olympusbiblioteca.com/series/comic-${details.slug}`
+                    : details.source === "dragon"
+                    ? `https://dragontranslation.org/manga/${details.slug}/`
+                    : `https://mangadex.org/title/${details.slug}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-300 hover:text-white hover:border-neutral-700 transition"
+                title="Visitar la página oficial del Scanlation"
+              >
+                <span>Visitar Scan Oficial</span>
+                <ExternalLink className="size-3.5 text-neutral-400" />
+              </a>
 
               <span className="text-xs text-neutral-400">
                 {details.chapters.length} capítulos registrados

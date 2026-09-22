@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatProxyUrl, truncateText, formatDate, cn } from "../src/lib/utils";
+import { formatProxyUrl, optimizeCoverUrl, truncateText, formatDate, cn } from "../src/lib/utils";
 
 describe("Utility functions", () => {
   it("cn correctly merges classnames", () => {
@@ -7,11 +7,23 @@ describe("Utility functions", () => {
     expect(cn("px-2", false && "hidden", "py-1")).toBe("px-2 py-1");
   });
 
-  it("formatProxyUrl generates valid proxy urls", () => {
-    const raw = "https://media.imagesolymp.xyz/comics/test.webp";
-    const res = formatProxyUrl(raw);
+  it("optimizeCoverUrl replaces large dimensions with lightweight versions", () => {
+    const raw = "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-lg.webp";
+    expect(optimizeCoverUrl(raw)).toBe(
+      "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-sm.webp"
+    );
+  });
+
+  it("formatProxyUrl handles direct CDNs and proxied hosts properly", () => {
+    // Open CDN host passes through directly to avoid proxy bottleneck
+    const cdnUrl = "https://media.imagesolymp.xyz/comics/test.webp";
+    expect(formatProxyUrl(cdnUrl)).toBe(cdnUrl);
+
+    // Host requiring referer and anti-hotlink bypass routes through /api/proxy
+    const protectedUrl = "https://dragontranslation.org/wp-content/uploads/test.jpg";
+    const res = formatProxyUrl(protectedUrl);
     expect(res).toContain("/api/proxy?url=");
-    expect(res).toContain(encodeURIComponent(raw));
+    expect(res).toContain(encodeURIComponent(protectedUrl));
 
     // Data and blob urls should pass through untouched
     expect(formatProxyUrl("blob:http://localhost/123")).toBe("blob:http://localhost/123");

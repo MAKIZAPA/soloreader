@@ -11,7 +11,7 @@ export async function GET(
   const { source: rawSource } = await context.params;
   const sourceId = rawSource as SourceId;
 
-  if (sourceId !== "olympus" && sourceId !== "mangadex") {
+  if (sourceId !== "olympus" && sourceId !== "dragon" && sourceId !== "mangadex") {
     return NextResponse.json({ error: `Fuente no soportada: ${rawSource}` }, { status: 400 });
   }
 

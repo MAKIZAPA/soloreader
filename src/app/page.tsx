@@ -171,6 +171,23 @@ export default function HomePage() {
         {/* TAB 1: EXPLORE */}
         {activeTab === "explore" && (
           <div className="space-y-6">
+            {/* Scanlation Community Disclaimer Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-neutral-800/80 bg-neutral-950/70 p-3.5 text-xs text-neutral-300">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="size-4 text-emerald-400 shrink-0" />
+                <span>
+                  <b>Reconocimiento a la Comunidad Scanlation:</b> Este visualizador no aloja contenido. Reconocemos y agradecemos el trabajo de <b>Olympus Scan</b>, <b>Dragon Translation</b>, <b>MangaDex</b> y <b>Nartag/KNS</b>.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLegalOpen(true)}
+                className="shrink-0 self-start sm:self-auto rounded-lg bg-neutral-900 border border-neutral-800 px-2.5 py-1 text-[11px] font-semibold text-neutral-300 hover:text-white transition"
+              >
+                Ver Términos & DMCA
+              </button>
+            </div>
+
             {/* View Subtabs & Source Info */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-neutral-950 p-3 rounded-2xl border border-neutral-800/80">
               <div className="flex items-center gap-1.5">

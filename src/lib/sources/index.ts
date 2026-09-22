@@ -1,16 +1,18 @@
 import { SourceId, SourceProvider } from "@/types";
 import { olympusSource } from "./olympus";
+import { dragonSource } from "./dragon";
 import { mangaDexSource } from "./mangadex";
 
 export const sources: Record<Exclude<SourceId, "local">, SourceProvider> = {
   olympus: olympusSource,
+  dragon: dragonSource,
   mangadex: mangaDexSource,
 };
 
 export function getSource(id: SourceId): SourceProvider {
   if (id === "olympus") return olympusSource;
+  if (id === "dragon") return dragonSource;
   if (id === "mangadex") return mangaDexSource;
-  // default to olympus
   return olympusSource;
 }
 
@@ -19,6 +21,12 @@ export const sourceList: { id: SourceId; name: string; description: string; lang
     id: "olympus",
     name: "Olympus Scan",
     description: "Scanlation en español especializado en Manhwa, Manhua y Manga con alta resolución.",
+    lang: "Español",
+  },
+  {
+    id: "dragon",
+    name: "Dragon Translation",
+    description: "Scanlation en español especializado en Manhwa, Webtoon y series de acción/romance.",
     lang: "Español",
   },
   {

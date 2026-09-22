@@ -43,24 +43,24 @@
     <td width="50%">
       <img src="https://img.shields.io/badge/SCRAPING-OLYMPUS_SCAN_API-10b981?style=flat-square" alt="Olympus" /><br/>
       <b>Scraping Dinámico para Olympus Scan</b><br/>
-      Integración directa con los endpoints de Olympus Scan. Detección automática del dominio activo mediante <code>olympus.pages.dev</code>, extracción de rankings, nuevos capítulos, sinopsis completas y páginas en alta definición.
+      Integración directa con los endpoints de Olympus Scan. Detección automática del dominio activo mediante <code>olympus.pages.dev</code>, optimización de portadas ultra-ligeras (reducción del 90% en peso) y páginas en alta definición.
     </td>
     <td width="50%">
-      <img src="https://img.shields.io/badge/CATALOG-MANGADEX_v5_API-06b6d4?style=flat-square" alt="MangaDex" /><br/>
-      <b>Catálogo Global MangaDex v5</b><br/>
-      Acceso a millones de mangas con soporte multilingüe (Español Latino, Español España e Inglés), filtrado por popularidad y servidor de imágenes <i>@home</i> sin publicidad intrusiva.
+      <img src="https://img.shields.io/badge/SCRAPING-DRAGON_TRANSLATION-e11d48?style=flat-square" alt="Dragon" /><br/>
+      <b>Scraping para Dragon Translation</b><br/>
+      Integración completa mediante parsing de DOM y metadatos JSON para el catálogo de Dragon Translation. Rankings por vistas, últimos capítulos y visualización continua gapless.
     </td>
   </tr>
   <tr>
     <td width="50%">
+      <img src="https://img.shields.io/badge/CATALOG-MANGADEX_v5_API-06b6d4?style=flat-square" alt="MangaDex" /><br/>
+      <b>Catálogo Global MangaDex v5</b><br/>
+      Acceso a millones de títulos con soporte multilingüe (Español Latino, Español España e Inglés), filtrado por popularidad y servidor de imágenes <i>@home</i> sin publicidad intrusiva.
+    </td>
+    <td width="50%">
       <img src="https://img.shields.io/badge/READER-WEBTOON_CASCADE-8b5cf6?style=flat-square" alt="Webtoon" /><br/>
       <b>Lector Tipo Cascada (Webtoon) Continuo</b><br/>
       Flujo vertical sin cortes (gapless) optimizado para manhwa y webtoon con cálculo dinámico por scroll e IntersectionObserver para tracking automático del progreso de lectura.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/MODES-SINGLE_&_DOUBLE_SPREAD-ffd700?style=flat-square" alt="Modes" /><br/>
-      <b>Modos Tradicionales & Doble Página</b><br/>
-      Soporte para lectura clásica de manga con navegación de derecha a izquierda (RTL) u occidental (LTR), visor de doble página sincronizado y control de ajuste (ancho, alto u original).
     </td>
   </tr>
   <tr>

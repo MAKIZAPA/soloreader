@@ -101,6 +101,18 @@ export function Navbar({ onOpenSearch, onOpenLegal, onOpenLocal }: NavbarProps) 
             </button>
             <button
               type="button"
+              onClick={() => setActiveSource("dragon")}
+              className={cn(
+                "px-2.5 py-1 font-medium rounded-md transition",
+                activeSource === "dragon"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-neutral-200"
+              )}
+            >
+              Dragon
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveSource("mangadex")}
               className={cn(
                 "px-2.5 py-1 font-medium rounded-md transition",

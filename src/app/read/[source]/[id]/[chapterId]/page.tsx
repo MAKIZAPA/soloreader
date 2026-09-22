@@ -26,7 +26,7 @@ export default async function ReadPage({ params }: ReadPageProps) {
     return <LocalReaderClient sessionKey={chapterId} />;
   }
 
-  if (sourceId !== "olympus" && sourceId !== "mangadex") {
+  if (sourceId !== "olympus" && sourceId !== "dragon" && sourceId !== "mangadex") {
     notFound();
   }
 

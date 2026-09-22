@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Bookmark, BookOpen } from "lucide-react";
 import { MangaItem } from "@/types";
-import { formatProxyUrl, cn } from "@/lib/utils";
+import { formatProxyUrl, optimizeCoverUrl, cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 
 interface MangaCardProps {
@@ -16,7 +16,8 @@ export function MangaCard({ manga }: MangaCardProps) {
   const { isInLibrary, addToLibrary, removeFromLibrary } = useAppStore();
 
   const inLibrary = isInLibrary(manga.id);
-  const proxyCover = manga.coverUrl ? formatProxyUrl(manga.coverUrl) : "";
+  const optimizedCover = manga.coverUrl ? optimizeCoverUrl(manga.coverUrl) : "";
+  const proxyCover = optimizedCover ? formatProxyUrl(optimizedCover) : "";
 
   const toggleLibrary = (e: React.MouseEvent) => {
     e.preventDefault();

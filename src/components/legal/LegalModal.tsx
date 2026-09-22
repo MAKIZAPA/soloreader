@@ -91,6 +91,25 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
               Este software ha sido diseñado con fines estrictamente educativos y de interoperabilidad de formatos. El usuario final es el único responsable del uso que decida darle y de las fuentes externas que configure.
             </p>
           </div>
+
+          <div className="rounded-xl border border-emerald-800/40 bg-emerald-950/20 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+              <CheckCircle2 className="size-4 text-emerald-400" />
+              <span>6. Agradecimiento Especial a los Grupos de Scanlation</span>
+            </div>
+            <p className="text-neutral-300">
+              Expresamos nuestro mayor reconocimiento y gratitud a los equipos de traducción de la comunidad:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-neutral-400 pl-1">
+              <li><b>Olympus Scan</b>: Por su excelente trabajo de traducción, edición y maquetación en Manhwas y Webtoons.</li>
+              <li><b>Dragon Translation</b>: Por su dedicación continua al catálogo en español.</li>
+              <li><b>Knight No Scanlation / RN (Nartag)</b>: Por su histórica labor y aporte al cómic digital en español.</li>
+              <li><b>MangaDex & Fansubs Comunitarios</b>: Por fomentar un archivo abierto y sin fines de lucro para los lectores globales.</li>
+            </ul>
+            <p className="text-[11px] text-neutral-400 pt-1">
+              Lector Manga preserva los créditos y marcas de agua originales de cada grupo. Si perteneces a un equipo de scanlation y deseas que tu enlace sea modificado o excluido del índice, puedes abrir un Issue en el repositorio oficial.
+            </p>
+          </div>
         </div>
 
         {/* Footer */}
