@@ -130,6 +130,8 @@ export interface MihonManga {
   matchedId?: string;
   matchedTitle?: string;
   isMatched?: boolean;
+  realReadingSeconds?: number;
+  lastReadTimestamp?: number;
 }
 
 export interface MihonBackupResult {

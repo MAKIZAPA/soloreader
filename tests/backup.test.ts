@@ -168,4 +168,40 @@ describe("Mihon Backup Parser & Store Integration", () => {
     expect(unmatched?.manga.originalSource).toBe("ZonaTMO");
     expect(unmatched?.totalChaptersRead).toBe(15);
   });
+
+  it("extracts exact real reading time from backup history and prioritizes it in reading stats", () => {
+    const mockJson = {
+      backupManga: [
+        {
+          source: 100,
+          sourceName: "Olympus Scan",
+          url: "/series/tower-of-god",
+          title: "Tower of God",
+          chapters: [
+            { name: "Cap 1", url: "/1", read: true },
+            { name: "Cap 2", url: "/2", read: true },
+          ],
+          history: [
+            // 150000 ms = 150 seconds, 250000 ms = 250 seconds -> total 400 seconds
+            { url: "/1", lastRead: 1700000000000, readDuration: 150000 },
+            { url: "/2", lastRead: 1700005000000, readDuration: 250000 },
+          ],
+        },
+      ],
+    };
+
+    const parsed = parseMihonJson(mockJson);
+    expect(parsed.mangas[0].realReadingSeconds).toBe(400);
+    expect(parsed.mangas[0].lastReadTimestamp).toBe(1700005000000);
+
+    useAppStore.getState().importMihonBackup(parsed.mangas, "replace");
+    const stats = useAppStore.getState().stats;
+    const togKey = "olympus:tower-of-god";
+
+    expect(stats[togKey]).toBeDefined();
+    // Prioritizes real 400 seconds rather than estimated (2 * 180 = 360)
+    expect(stats[togKey].totalSeconds).toBe(400);
+    expect(stats[togKey].lastReadTimestamp).toBe(1700005000000);
+  });
 });
+

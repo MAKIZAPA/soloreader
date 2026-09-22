@@ -123,6 +123,32 @@ export function parseMihonProtobuf(buffer: Uint8Array): MihonBackupResult {
           }
         } else if (mField === 100 && mWire === 0) {
           manga.favorite = readVarint() !== 0;
+        } else if (mField === 104 && mWire === 2) {
+          // BackupHistory message (url: 1, lastRead: 2, readDuration: 3)
+          const hLen = Number(readVarint());
+          const hEnd = pos + hLen;
+          let hLastRead = 0;
+          let hReadDuration = 0;
+          while (pos < hEnd) {
+            const hTag = Number(readVarint());
+            if (hTag === 0) break;
+            const hWire = hTag & 0x07;
+            const hField = hTag >> 3;
+            if (hField === 2 && hWire === 0) {
+              hLastRead = Number(readVarint());
+            } else if (hField === 3 && hWire === 0) {
+              hReadDuration = Number(readVarint());
+            } else {
+              skipField(hWire);
+            }
+          }
+          if (hReadDuration > 0) {
+            manga.realReadingSeconds =
+              (manga.realReadingSeconds || 0) + Math.round(hReadDuration / 1000);
+          }
+          if (hLastRead > (manga.lastReadTimestamp || 0)) {
+            manga.lastReadTimestamp = hLastRead;
+          }
         } else {
           skipField(mWire);
         }
@@ -222,6 +248,12 @@ interface RawMihonChapter {
   lastPageRead?: number | string;
 }
 
+interface RawMihonHistory {
+  url?: string;
+  lastRead?: number | string;
+  readDuration?: number | string;
+}
+
 interface RawMihonManga {
   source?: number | string;
   sourceName?: string;
@@ -234,6 +266,7 @@ interface RawMihonManga {
   cover?: string;
   favorite?: boolean;
   chapters?: RawMihonChapter[];
+  history?: RawMihonHistory[];
 }
 
 interface RawMihonSource {
@@ -280,6 +313,22 @@ export function parseMihonJson(data: RawMihonBackupData): MihonBackupResult {
     const readChapters = chapters.filter((c: { read: boolean }) => c.read).length;
     const lastRead = chapters.find((c: { read: boolean }) => c.read);
 
+    let realReadingSeconds = 0;
+    let lastReadTimestamp = 0;
+
+    if (Array.isArray(item.history)) {
+      for (const h of item.history) {
+        const dur = Number(h.readDuration || 0);
+        if (dur > 0) {
+          realReadingSeconds += Math.round(dur / 1000);
+        }
+        const lr = Number(h.lastRead || 0);
+        if (lr > lastReadTimestamp) {
+          lastReadTimestamp = lr;
+        }
+      }
+    }
+
     mangas.push({
       sourceId: String(item.source || ""),
       sourceName: sources[String(item.source)] || item.sourceName || undefined,
@@ -293,6 +342,8 @@ export function parseMihonJson(data: RawMihonBackupData): MihonBackupResult {
       totalChapters: chapters.length,
       readChapters,
       lastReadChapterName: lastRead?.name,
+      realReadingSeconds: realReadingSeconds > 0 ? realReadingSeconds : undefined,
+      lastReadTimestamp: lastReadTimestamp > 0 ? lastReadTimestamp : undefined,
       chapters,
     });
   }

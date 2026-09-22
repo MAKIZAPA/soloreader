@@ -229,25 +229,28 @@ export const useAppStore = create<AppState>()(
               totalChaptersRead: m.readChapters,
               lastReadChapterNumber:
                 m.lastReadChapterName || (m.readChapters > 0 ? String(m.readChapters) : undefined),
-              lastReadAt: Date.now(),
+              lastReadAt: m.lastReadTimestamp || Date.now(),
             };
 
-            // Also register in reading stats if readChapters > 0
-            if (m.readChapters > 0) {
+            // Register in reading stats if readChapters > 0 or has realReadingSeconds
+            if (m.readChapters > 0 || (m.realReadingSeconds && m.realReadingSeconds > 0)) {
               const currentStat = nextStats[key];
-              const estimatedSeconds = m.readChapters * 180;
+              const secondsToApply =
+                m.realReadingSeconds && m.realReadingSeconds > 0
+                  ? m.realReadingSeconds
+                  : m.readChapters * 180;
               nextStats[key] = {
                 mangaId: cleanId,
                 source: mappedSource,
                 mangaTitle: m.title,
                 mangaCover: m.thumbnailUrl || "",
                 totalSeconds: currentStat
-                  ? Math.max(currentStat.totalSeconds, estimatedSeconds)
-                  : estimatedSeconds,
+                  ? Math.max(currentStat.totalSeconds, secondsToApply)
+                  : secondsToApply,
                 sessionsCount: currentStat
-                  ? currentStat.sessionsCount + m.readChapters
-                  : m.readChapters,
-                lastReadTimestamp: Date.now(),
+                  ? currentStat.sessionsCount + (m.readChapters || 1)
+                  : (m.readChapters || 1),
+                lastReadTimestamp: m.lastReadTimestamp || Date.now(),
               };
             }
           }
