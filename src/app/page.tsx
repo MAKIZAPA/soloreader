@@ -439,16 +439,11 @@ export default function HomePage() {
         {activeTab === "stats" && (
           <div className="space-y-6">
             {/* Header / Summary Cards */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
-              <div>
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <BarChart3 className="size-4 text-amber-400" />
-                  <span>Estadísticas de Lectura</span>
-                </h3>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Seguimiento de tiempo real y ranking top de mangas al estilo Tachimanga.
-                </p>
-              </div>
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-4">
+              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <BarChart3 className="size-4 text-amber-400" />
+                <span>Estadísticas de Lectura</span>
+              </h3>
 
               {statsList.length > 0 && (
                 <button
