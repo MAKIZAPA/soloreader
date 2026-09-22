@@ -24,7 +24,6 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
             </div>
             <div>
               <h3 className="text-base font-bold text-white">Marco Legal & Cumplimiento DMCA</h3>
-              <p className="text-xs text-neutral-400">Arquitectura de lectura abierta tipo Tachiyomi / Mihon</p>
             </div>
           </div>
           <button
