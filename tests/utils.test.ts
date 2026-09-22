@@ -8,9 +8,9 @@ describe("Utility functions", () => {
   });
 
   it("optimizeCoverUrl replaces large dimensions with lightweight versions", () => {
-    const raw = "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-lg.webp";
+    const raw = "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-xl.webp";
     expect(optimizeCoverUrl(raw)).toBe(
-      "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-sm.webp"
+      "https://media.imagesolymp.xyz/comics/covers/743/sabueso-venganza-lg.webp"
     );
   });
 

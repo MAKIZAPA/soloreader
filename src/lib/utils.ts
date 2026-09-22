@@ -7,9 +7,9 @@ export function cn(...inputs: ClassValue[]): string {
 
 export function optimizeCoverUrl(rawUrl: string): string {
   if (!rawUrl) return "";
-  // Olympus: replace -lg.webp or -xl.webp with -md.webp (or -sm.webp) to reduce bandwidth by 90%
+  // Ensure crisp, sharp high-definition covers (-lg.webp is 768w, ~25KB) avoiding both blurry -sm and bloated -xl
   if (rawUrl.includes("imagesolymp.xyz")) {
-    return rawUrl.replace(/-(lg|xl)\.webp$/, "-sm.webp");
+    return rawUrl.replace(/-(xl|sm)\.webp$/, "-lg.webp");
   }
   return rawUrl;
 }
