@@ -12,6 +12,8 @@ import {
   Layers,
   BookOpen,
   RefreshCw,
+  Search,
+  Sparkles,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { MihonBackupResult } from "@/types";
@@ -33,6 +35,11 @@ export function BackupModal({ isOpen, onClose }: BackupModalProps) {
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const [importedCount, setImportedCount] = useState<number | null>(null);
 
+  // Auto-matcher state for external sources (e.g. ZonaTMO)
+  const [matchingInProgress, setMatchingInProgress] = useState(false);
+  const [matchedCount, setMatchedCount] = useState<number | null>(null);
+  const [matchProgress, setMatchProgress] = useState<{ current: number; total: number } | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -45,6 +52,7 @@ export function BackupModal({ isOpen, onClose }: BackupModalProps) {
     setError(null);
     setParsedResult(null);
     setImportedCount(null);
+    setMatchedCount(null);
     setFileName(file.name);
 
     try {
@@ -69,6 +77,63 @@ export function BackupModal({ isOpen, onClose }: BackupModalProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAutoMatchSources = async () => {
+    if (!parsedResult) return;
+    setMatchingInProgress(true);
+    setMatchProgress({ current: 0, total: parsedResult.mangas.length });
+
+    const updatedMangas = [...parsedResult.mangas];
+    let matchedTotal = 0;
+
+    for (let i = 0; i < updatedMangas.length; i++) {
+      const m = updatedMangas[i];
+      const sName = (m.sourceName || "").toLowerCase();
+      const isKnown =
+        sName.includes("olympus") || sName.includes("dragon") || sName.includes("mangadex");
+
+      // If it's from ZonaTMO, TuMangaOnline, or another external source, search our sources
+      if (!isKnown && !m.matchedSource) {
+        try {
+          const res = await fetch("/api/backup/resolve-source", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: m.title, originalSource: m.sourceName }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.matched) {
+              m.matchedSource = data.source;
+              m.matchedId = data.id;
+              m.matchedTitle = data.title;
+              if (data.coverUrl) {
+                m.thumbnailUrl = data.coverUrl;
+              }
+              m.isMatched = true;
+              matchedTotal++;
+            } else {
+              m.isMatched = false;
+            }
+          }
+        } catch (err) {
+          console.warn("Auto-match failed for:", m.title, err);
+        }
+      } else if (m.matchedSource) {
+        matchedTotal++;
+      }
+
+      setMatchProgress({ current: i + 1, total: updatedMangas.length });
+    }
+
+    setParsedResult({
+      ...parsedResult,
+      mangas: updatedMangas,
+    });
+    setMatchedCount(matchedTotal);
+    setMatchingInProgress(false);
+    setMatchProgress(null);
   };
 
   const handleConfirmImport = () => {
@@ -277,6 +342,74 @@ export function BackupModal({ isOpen, onClose }: BackupModalProps) {
                       </div>
                     </div>
 
+                    {/* Source detector banner for external sources like ZonaTMO */}
+                    {(parsedResult.mangas.some((m) => {
+                      const s = (m.sourceName || "").toLowerCase();
+                      return !m.matchedSource && !s.includes("olympus") && !s.includes("dragon") && !s.includes("mangadex");
+                    }) || matchedCount !== null) && (
+                      <div className="rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-3.5 space-y-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="size-4 text-cyan-400 shrink-0" />
+                            <span className="text-xs font-bold text-white">
+                              Detector de Fuentes: {parsedResult.mangas.filter((m) => {
+                                const s = (m.sourceName || "").toLowerCase();
+                                return !m.matchedSource && !s.includes("olympus") && !s.includes("dragon") && !s.includes("mangadex");
+                              }).length} obras de fuentes externas
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={matchingInProgress}
+                            onClick={handleAutoMatchSources}
+                            className="flex items-center justify-center gap-1.5 self-start sm:self-auto rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 px-3 py-1.5 text-xs font-semibold text-cyan-300 disabled:opacity-50 transition"
+                          >
+                            {matchingInProgress ? (
+                              <>
+                                <RefreshCw className="size-3 animate-spin" />
+                                <span>Buscando en catálogo...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Search className="size-3" />
+                                <span>Detectar & Vincular Fuentes</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <p className="text-[11px] text-neutral-400 leading-relaxed">
+                          Se detectaron mangas de fuentes externas (como <b>ZonaTMO</b> u otras). Este detector buscará equivalencias automáticas en Olympus, MangaDex y Dragon para habilitar la lectura. Si alguna no se encuentra, se conservará con su portada y progreso intactos.
+                        </p>
+
+                        {matchingInProgress && matchProgress && (
+                          <div className="pt-1 space-y-1">
+                            <div className="flex justify-between text-[10px] text-neutral-400 font-mono">
+                              <span>Escaneando catálogo...</span>
+                              <span>
+                                {matchProgress.current} / {matchProgress.total}
+                              </span>
+                            </div>
+                            <div className="h-1.5 w-full bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+                              <div
+                                className="h-full bg-cyan-400 transition-all duration-300"
+                                style={{
+                                  width: `${(matchProgress.current / matchProgress.total) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {matchedCount !== null && (
+                          <p className="text-[11px] text-emerald-400 font-semibold pt-0.5">
+                            ✓ {matchedCount} {matchedCount === 1 ? "obra vinculada" : "obras vinculadas"} con éxito a fuentes activas.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Mode selector */}
                     <div className="pt-2 border-t border-neutral-800">
                       <span className="text-[11px] font-semibold text-neutral-300 block mb-2">
@@ -341,10 +474,22 @@ export function BackupModal({ isOpen, onClose }: BackupModalProps) {
                           </div>
                           <div className="min-w-0 flex-1">
                             <h5 className="text-xs font-semibold text-white truncate">{m.title}</h5>
-                            <p className="text-[10px] text-neutral-400 mt-0.5">
-                              {m.readChapters} de {m.totalChapters} caps leídos
-                              {m.sourceName ? ` • ${m.sourceName}` : ""}
-                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                              <p className="text-[10px] text-neutral-400">
+                                {m.readChapters} de {m.totalChapters} caps leídos
+                                {m.sourceName ? ` • ${m.sourceName}` : ""}
+                              </p>
+                              {m.matchedSource && (
+                                <span className="rounded bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.2 text-[9px] font-semibold text-emerald-300 uppercase">
+                                  Vinculado: {m.matchedSource}
+                                </span>
+                              )}
+                              {m.isMatched === false && (
+                                <span className="rounded bg-neutral-800 border border-neutral-700 px-1.5 py-0.2 text-[9px] text-neutral-400">
+                                  Conservado ({m.sourceName || "ZonaTMO"})
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}

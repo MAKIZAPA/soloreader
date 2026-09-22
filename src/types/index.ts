@@ -13,6 +13,8 @@ export interface MangaItem {
   synopsis?: string;
   genres?: string[];
   author?: string;
+  originalSource?: string;
+  isExternal?: boolean;
 }
 
 export interface MangaDetails extends MangaItem {
@@ -124,6 +126,10 @@ export interface MihonManga {
     chapterNumber: number;
     lastPageRead: number;
   }>;
+  matchedSource?: SourceId;
+  matchedId?: string;
+  matchedTitle?: string;
+  isMatched?: boolean;
 }
 
 export interface MihonBackupResult {

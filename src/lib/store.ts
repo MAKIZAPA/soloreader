@@ -178,28 +178,37 @@ export const useAppStore = create<AppState>()(
           const nextStats = mode === "replace" ? {} : { ...state.stats };
 
           for (const m of mangas) {
-            // Determine source
-            let mappedSource: SourceId = "olympus";
-            const sName = (m.sourceName || "").toLowerCase();
-            const sUrl = (m.url || "").toLowerCase();
+            // Determine source & id (taking into account auto-matcher resolution)
+            let mappedSource: SourceId = m.matchedSource || "olympus";
+            let cleanId = m.matchedId || "";
+            const finalTitle = m.matchedTitle || m.title;
+            const isKnownSource =
+              Boolean(m.matchedSource) ||
+              m.sourceName?.toLowerCase().includes("olympus") ||
+              m.sourceName?.toLowerCase().includes("dragon") ||
+              m.sourceName?.toLowerCase().includes("mangadex");
 
-            if (sName.includes("dragon") || sUrl.includes("dragontranslation")) {
-              mappedSource = "dragon";
-            } else if (sName.includes("dex") || sUrl.includes("mangadex")) {
-              mappedSource = "mangadex";
-            } else if (sName.includes("olympus") || sUrl.includes("olympus")) {
-              mappedSource = "olympus";
-            } else {
-              mappedSource = "olympus";
+            if (!m.matchedSource) {
+              const sName = (m.sourceName || "").toLowerCase();
+              const sUrl = (m.url || "").toLowerCase();
+
+              if (sName.includes("dragon") || sUrl.includes("dragontranslation")) {
+                mappedSource = "dragon";
+              } else if (sName.includes("dex") || sUrl.includes("mangadex")) {
+                mappedSource = "mangadex";
+              } else if (sName.includes("olympus") || sUrl.includes("olympus")) {
+                mappedSource = "olympus";
+              } else {
+                mappedSource = "olympus";
+              }
+
+              cleanId =
+                m.url
+                  .replace(/^https?:\/\/[^/]+/, "")
+                  .replace(/^\/+|\/+$/g, "")
+                  .split("/")
+                  .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
             }
-
-            // Extract clean id/slug
-            const cleanId =
-              m.url
-                .replace(/^https?:\/\/[^/]+/, "")
-                .replace(/^\/+|\/+$/g, "")
-                .split("/")
-                .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
             const key = `${mappedSource}:${cleanId}`;
             const isCompleted = m.totalChapters > 0 && m.readChapters >= m.totalChapters;
@@ -208,10 +217,12 @@ export const useAppStore = create<AppState>()(
               manga: {
                 id: cleanId,
                 source: mappedSource,
-                title: m.title,
+                title: finalTitle,
                 slug: cleanId,
                 coverUrl: m.thumbnailUrl || "",
                 synopsis: m.description,
+                originalSource: m.sourceName || undefined,
+                isExternal: !isKnownSource,
               },
               addedAt: Date.now(),
               status: isCompleted ? "completed" : "reading",

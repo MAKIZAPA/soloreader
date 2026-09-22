@@ -123,4 +123,49 @@ describe("Mihon Backup Parser & Store Integration", () => {
     expect(parsed.version).toBe("1.0");
     expect(Object.keys(parsed.library).length).toBe(1);
   });
+
+  it("handles external sources like ZonaTMO by preserving or linking to matched source", () => {
+    const mangas = [
+      {
+        sourceId: "9999",
+        sourceName: "ZonaTMO",
+        url: "/viewer/solo-leveling",
+        title: "Solo Leveling",
+        favorite: true,
+        totalChapters: 200,
+        readChapters: 180,
+        chapters: [],
+        matchedSource: "mangadex" as const,
+        matchedId: "32d76d19-8a05-4db0-9fc2-e0b0648fe9d0",
+        matchedTitle: "Solo Leveling",
+      },
+      {
+        sourceId: "9999",
+        sourceName: "ZonaTMO",
+        url: "/viewer/unmatched-manga",
+        title: "Obra Rara Sin Fuente Activa",
+        favorite: true,
+        totalChapters: 20,
+        readChapters: 15,
+        chapters: [],
+      },
+    ];
+
+    useAppStore.getState().importMihonBackup(mangas, "replace");
+    const library = useAppStore.getState().library;
+
+    // The matched manga should be linked to MangaDex
+    const matched = library["mangadex:32d76d19-8a05-4db0-9fc2-e0b0648fe9d0"];
+    expect(matched).toBeDefined();
+    expect(matched.manga.source).toBe("mangadex");
+    expect(matched.manga.originalSource).toBe("ZonaTMO");
+    expect(matched.totalChaptersRead).toBe(180);
+
+    // The unmatched manga should still be preserved with original data
+    const entries = Object.values(library);
+    const unmatched = entries.find((e) => e.manga.title === "Obra Rara Sin Fuente Activa");
+    expect(unmatched).toBeDefined();
+    expect(unmatched?.manga.originalSource).toBe("ZonaTMO");
+    expect(unmatched?.totalChaptersRead).toBe(15);
+  });
 });
