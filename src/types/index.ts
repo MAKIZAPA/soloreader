@@ -93,3 +93,14 @@ export interface HistoryEntry {
   totalPages: number;
   timestamp: number;
 }
+
+export interface MangaReadingStats {
+  mangaId: string;
+  source: SourceId;
+  mangaTitle: string;
+  mangaCover: string;
+  totalSeconds: number;
+  sessionsCount: number;
+  lastReadTimestamp: number;
+}
+

@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { HistoryEntry, LibraryEntry, MangaItem, ReaderSettings, SourceId } from "@/types";
+import {
+  HistoryEntry,
+  LibraryEntry,
+  MangaItem,
+  MangaReadingStats,
+  ReaderSettings,
+  SourceId,
+} from "@/types";
 
 interface AppState {
   // Active Source
@@ -25,6 +32,17 @@ interface AppState {
   recordHistory: (entry: Omit<HistoryEntry, "timestamp">) => void;
   clearHistory: () => void;
   removeHistoryItem: (chapterId: string) => void;
+
+  // Statistics (Tachimanga Style Time Tracking)
+  stats: Record<string, MangaReadingStats>;
+  recordReadingTime: (
+    mangaId: string,
+    source: SourceId,
+    mangaTitle: string,
+    mangaCover: string,
+    seconds: number
+  ) => void;
+  clearStats: () => void;
 
   // Reader Settings
   readerSettings: ReaderSettings;
@@ -118,6 +136,36 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           history: state.history.filter((h) => h.chapterId !== chapterId),
         })),
+
+      stats: {},
+      recordReadingTime: (mangaId, source, mangaTitle, mangaCover, seconds) =>
+        set((state) => {
+          const key = `${source}:${mangaId}`;
+          const current = state.stats[key] || {
+            mangaId,
+            source,
+            mangaTitle,
+            mangaCover,
+            totalSeconds: 0,
+            sessionsCount: 0,
+            lastReadTimestamp: Date.now(),
+          };
+
+          return {
+            stats: {
+              ...state.stats,
+              [key]: {
+                ...current,
+                mangaTitle: mangaTitle || current.mangaTitle,
+                mangaCover: mangaCover || current.mangaCover,
+                totalSeconds: current.totalSeconds + seconds,
+                sessionsCount: current.sessionsCount + 1,
+                lastReadTimestamp: Date.now(),
+              },
+            },
+          };
+        }),
+      clearStats: () => set({ stats: {} }),
 
       readerSettings: DEFAULT_SETTINGS,
       updateReaderSettings: (partial) =>

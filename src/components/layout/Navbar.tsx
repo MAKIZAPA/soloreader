@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Compass, Bookmark, Clock, FolderUp, ShieldCheck, Search } from "lucide-react";
+import {
+  BookOpen,
+  Compass,
+  Bookmark,
+  Clock,
+  BarChart3,
+  FolderUp,
+  ShieldCheck,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 
@@ -10,14 +19,28 @@ interface NavbarProps {
   onOpenSearch?: () => void;
   onOpenLegal?: () => void;
   onOpenLocal?: () => void;
+  activeTab?: "explore" | "library" | "history" | "stats";
+  onSelectTab?: (tab: "explore" | "library" | "history" | "stats") => void;
 }
 
-export function Navbar({ onOpenSearch, onOpenLegal, onOpenLocal }: NavbarProps) {
+export function Navbar({
+  onOpenSearch,
+  onOpenLegal,
+  onOpenLocal,
+  activeTab = "explore",
+  onSelectTab,
+}: NavbarProps) {
   const pathname = usePathname();
   const { activeSource, setActiveSource, library } = useAppStore();
   const libraryCount = Object.keys(library).length;
 
   const isHome = pathname === "/";
+
+  const handleTabClick = (tab: "explore" | "library" | "history" | "stats") => {
+    if (onSelectTab) {
+      onSelectTab(tab);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-800/80 bg-black/85 backdrop-blur-md">
@@ -36,39 +59,87 @@ export function Navbar({ onOpenSearch, onOpenLegal, onOpenLocal }: NavbarProps) 
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
-            <Link
-              href="/"
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition",
-                isHome
-                  ? "bg-neutral-900 text-white border border-neutral-800"
-                  : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
-              )}
-            >
-              <Compass className="size-3.5" />
-              Explorar
-            </Link>
+            {isHome && onSelectTab ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleTabClick("explore")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition",
+                    activeTab === "explore"
+                      ? "bg-neutral-900 text-white border border-neutral-800"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
+                  )}
+                >
+                  <Compass className="size-3.5" />
+                  Explorar
+                </button>
 
-            <Link
-              href="/#biblioteca"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-900/50 rounded-md transition"
-            >
-              <Bookmark className="size-3.5" />
-              Biblioteca
-              {libraryCount > 0 && (
-                <span className="ml-1 rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-400 border border-emerald-500/30">
-                  {libraryCount}
-                </span>
-              )}
-            </Link>
+                <button
+                  type="button"
+                  onClick={() => handleTabClick("library")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition",
+                    activeTab === "library"
+                      ? "bg-neutral-900 text-white border border-neutral-800"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
+                  )}
+                >
+                  <Bookmark className="size-3.5" />
+                  Biblioteca
+                  {libraryCount > 0 && (
+                    <span className="ml-1 rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[10px] font-semibold text-emerald-400 border border-emerald-500/30">
+                      {libraryCount}
+                    </span>
+                  )}
+                </button>
 
-            <Link
-              href="/#historial"
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-900/50 rounded-md transition"
-            >
-              <Clock className="size-3.5" />
-              Historial
-            </Link>
+                <button
+                  type="button"
+                  onClick={() => handleTabClick("history")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition",
+                    activeTab === "history"
+                      ? "bg-neutral-900 text-white border border-neutral-800"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
+                  )}
+                >
+                  <Clock className="size-3.5" />
+                  Historial
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleTabClick("stats")}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition",
+                    activeTab === "stats"
+                      ? "bg-neutral-900 text-white border border-neutral-800"
+                      : "text-neutral-400 hover:text-white hover:bg-neutral-900/50"
+                  )}
+                >
+                  <BarChart3 className="size-3.5 text-amber-400" />
+                  Estadísticas
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-900/50 rounded-md transition"
+                >
+                  <Compass className="size-3.5" />
+                  Explorar
+                </Link>
+                <Link
+                  href="/#biblioteca"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-white hover:bg-neutral-900/50 rounded-md transition"
+                >
+                  <Bookmark className="size-3.5" />
+                  Biblioteca
+                </Link>
+              </>
+            )}
 
             {onOpenLocal && (
               <button

@@ -32,7 +32,13 @@ export function ReaderView({
   nextChapterId,
 }: ReaderViewProps) {
   const router = useRouter();
-  const { readerSettings, updateReaderSettings, recordHistory, updateLibraryProgress } = useAppStore();
+  const {
+    readerSettings,
+    updateReaderSettings,
+    recordHistory,
+    updateLibraryProgress,
+    recordReadingTime,
+  } = useAppStore();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [showHUD, setShowHUD] = useState(true);
@@ -44,6 +50,63 @@ export function ReaderView({
   const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const totalPages = data.pages.length;
+
+  // Active reading time tracker with inactivity detection (Tachimanga style)
+  useEffect(() => {
+    let activeSeconds = 0;
+    let lastActive = Date.now();
+    let isHidden = document.hidden;
+
+    const handleActivity = () => {
+      lastActive = Date.now();
+    };
+
+    const handleVisibility = () => {
+      isHidden = document.hidden;
+      if (!isHidden) lastActive = Date.now();
+    };
+
+    window.addEventListener("scroll", handleActivity, { passive: true });
+    window.addEventListener("click", handleActivity, { passive: true });
+    window.addEventListener("keydown", handleActivity, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    const interval = setInterval(() => {
+      const now = Date.now();
+      // If user is active in last 60 seconds and tab is visible, record time
+      if (!isHidden && now - lastActive < 60000) {
+        activeSeconds += 1;
+        if (activeSeconds >= 5) {
+          recordReadingTime(
+            data.mangaId,
+            data.source,
+            mangaTitle,
+            data.pages[0] || "",
+            activeSeconds
+          );
+          activeSeconds = 0;
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("scroll", handleActivity);
+      window.removeEventListener("click", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      document.removeEventListener("visibilitychange", handleVisibility);
+
+      if (activeSeconds > 0) {
+        recordReadingTime(
+          data.mangaId,
+          data.source,
+          mangaTitle,
+          data.pages[0] || "",
+          activeSeconds
+        );
+      }
+    };
+  }, [data.mangaId, data.source, mangaTitle, data.pages, recordReadingTime]);
 
   // Record history on mount or chapter change
   useEffect(() => {

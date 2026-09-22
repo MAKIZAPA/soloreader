@@ -87,6 +87,18 @@
       Construido sobre Next.js 16 App Router con Route Handlers serverless. Funciona tanto de forma local con Node.js como desplegado con un clic en Vercel sin límites de imágenes.
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/STATS-TACHIMANGA_READING_TIME-f59e0b?style=flat-square" alt="Stats" /><br/>
+      <b>Estadísticas de Lectura Estilo Tachimanga</b><br/>
+      Contador de tiempo activo con detección de inactividad (60s) y Page Visibility API. Top mangas en ranking descendente con barras porcentuales relativas y acceso directo.
+    </td>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/QUALITY-CRISP_HD_COVERS-10b981?style=flat-square" alt="HD Covers" /><br/>
+      <b>Portadas en Alta Definición Optimizadas</b><br/>
+      Carga inteligente de portadas en formato WebP de alta fidelidad sin pixelación ni consumo excesivo de ancho de banda.
+    </td>
+  </tr>
 </table>
 
 ---

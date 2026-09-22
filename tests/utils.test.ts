@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatProxyUrl, optimizeCoverUrl, truncateText, formatDate, cn } from "../src/lib/utils";
+import { formatProxyUrl, optimizeCoverUrl, truncateText, formatDate, formatDuration, cn } from "../src/lib/utils";
 
 describe("Utility functions", () => {
   it("cn correctly merges classnames", () => {
@@ -39,5 +39,12 @@ describe("Utility functions", () => {
     const formatted = formatDate("2026-09-20T14:05:10.000000Z");
     expect(formatted).toBeDefined();
     expect(typeof formatted).toBe("string");
+  });
+
+  it("formatDuration formats seconds into human-readable strings", () => {
+    expect(formatDuration(0)).toBe("0s");
+    expect(formatDuration(45)).toBe("45s");
+    expect(formatDuration(150)).toBe("2m 30s");
+    expect(formatDuration(3665)).toBe("1h 1m");
   });
 });
