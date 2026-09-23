@@ -85,6 +85,19 @@ const DEFAULT_SETTINGS: ReaderSettings = {
   background: "black",
 };
 
+function matchesMangaEntry(entry: LibraryEntry, mangaId: string): boolean {
+  if (!entry?.manga) return false;
+  const m = entry.manga;
+  if (m.id === mangaId || m.slug === mangaId) return true;
+  const cleanA = m.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleanB = mangaId.toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (cleanA && cleanB && cleanA === cleanB) return true;
+  if (cleanA.length >= 6 && cleanB.length >= 6) {
+    if (cleanA.startsWith(cleanB) || cleanB.startsWith(cleanA)) return true;
+  }
+  return false;
+}
+
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
@@ -111,7 +124,7 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
-            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+            if (matchesMangaEntry(next[key], mangaId) || key.endsWith(`:${mangaId}`)) {
               delete next[key];
             }
           }
@@ -138,7 +151,7 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
-            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+            if (matchesMangaEntry(next[key], mangaId) || key.endsWith(`:${mangaId}`)) {
               next[key] = { ...next[key], status };
             }
           }
@@ -148,7 +161,7 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
-            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+            if (matchesMangaEntry(next[key], mangaId) || key.endsWith(`:${mangaId}`)) {
               const readIds = new Set(next[key].readChapterIds || []);
               const readNums = new Set(next[key].readChapterNumbers || []);
               if (chapterId) readIds.add(chapterId);
@@ -174,7 +187,7 @@ export const useAppStore = create<AppState>()(
         set((state) => {
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
-            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+            if (matchesMangaEntry(next[key], mangaId) || key.endsWith(`:${mangaId}`)) {
               const readIds = new Set(next[key].readChapterIds || []);
               const readNums = new Set(next[key].readChapterNumbers || []);
               const cleanNum = chapterNumber ? String(chapterNumber).replace(/[^0-9.]/g, "") : "";
@@ -210,7 +223,7 @@ export const useAppStore = create<AppState>()(
           if (isNaN(targetNum)) return state;
 
           for (const key of Object.keys(next)) {
-            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+            if (matchesMangaEntry(next[key], mangaId) || key.endsWith(`:${mangaId}`)) {
               const readIds = new Set(next[key].readChapterIds || []);
               const readNums = new Set(next[key].readChapterNumbers || []);
 
@@ -275,7 +288,7 @@ export const useAppStore = create<AppState>()(
 
       isInLibrary: (mangaId) => {
         const lib = get().library;
-        return Object.values(lib).some((entry) => entry.manga.id === mangaId);
+        return Object.values(lib).some((entry) => matchesMangaEntry(entry, mangaId));
       },
 
       history: [],
@@ -376,6 +389,18 @@ export const useAppStore = create<AppState>()(
               }
             }
 
+            // Always avoid pure numeric IDs that collide or mismatch across providers
+            const titleSlug = m.title
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "");
+
+            if (!cleanId || /^\d+$/.test(cleanId)) {
+              cleanId = titleSlug || cleanId || `manga-${Date.now()}`;
+            }
+
             const key = `${mappedSource}:${cleanId}`;
             const isCompleted = m.totalChapters > 0 && m.readChapters >= m.totalChapters;
 
@@ -403,6 +428,12 @@ export const useAppStore = create<AppState>()(
               read: c.read,
             }));
 
+            const lastReadChapterNum = m.lastReadChapterName
+              ? m.lastReadChapterName.match(/(\d+(\.\d+)?)/)?.[1] || m.lastReadChapterName
+              : m.readChapters > 0
+              ? String(m.readChapters)
+              : undefined;
+
             nextLibrary[key] = {
               manga: {
                 id: cleanId,
@@ -417,8 +448,7 @@ export const useAppStore = create<AppState>()(
               addedAt: Date.now(),
               status: isCompleted ? "completed" : "reading",
               totalChaptersRead: Math.max(m.readChapters, readChapterNumbers.length),
-              lastReadChapterNumber:
-                m.lastReadChapterName || (m.readChapters > 0 ? String(m.readChapters) : undefined),
+              lastReadChapterNumber: lastReadChapterNum,
               lastReadAt: m.lastReadTimestamp || Date.now(),
               readChapterNumbers,
               readChapterIds,
@@ -489,6 +519,63 @@ export const useAppStore = create<AppState>()(
           },
         };
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        let changed = false;
+        const nextLibrary = { ...state.library };
+        const nextStats = { ...state.stats };
+
+        for (const [key, entry] of Object.entries(nextLibrary)) {
+          const normTitle = (entry.manga.title || "").toLowerCase();
+          const isEspada =
+            normTitle.includes("hijo menor") || normTitle.includes("maestro de la espada");
+          const isVillanoOrNumeric =
+            entry.manga.id.includes("villano") || entry.manga.id === "40" || /^\d+$/.test(entry.manga.id);
+
+          if (isEspada && isVillanoOrNumeric) {
+            delete nextLibrary[key];
+            const correctKey = "olympus:el-hijo20-225-de-la-espada13424";
+            nextLibrary[correctKey] = {
+              ...entry,
+              manga: {
+                ...entry.manga,
+                id: "el-hijo20-225-de-la-espada13424",
+                source: "olympus",
+                slug: "el-hijo20-225-de-la-espada13424",
+                title: "El hijo menor del maestro de la espada",
+                coverUrl: "https://media.imagesolymp.xyz/comics/covers/86/tmpizpqgl2f-xl.webp",
+                isExternal: false,
+              },
+            };
+            changed = true;
+          }
+        }
+
+        for (const [key, stat] of Object.entries(nextStats)) {
+          const normTitle = (stat.mangaTitle || "").toLowerCase();
+          const isEspada =
+            normTitle.includes("hijo menor") || normTitle.includes("maestro de la espada");
+          const isVillanoOrNumeric =
+            stat.mangaId.includes("villano") || stat.mangaId === "40" || /^\d+$/.test(stat.mangaId);
+
+          if (isEspada && isVillanoOrNumeric) {
+            delete nextStats[key];
+            const correctKey = "olympus:el-hijo20-225-de-la-espada13424";
+            nextStats[correctKey] = {
+              ...stat,
+              mangaId: "el-hijo20-225-de-la-espada13424",
+              source: "olympus",
+              mangaTitle: "El hijo menor del maestro de la espada",
+              mangaCover: "https://media.imagesolymp.xyz/comics/covers/86/tmpizpqgl2f-xl.webp",
+            };
+            changed = true;
+          }
+        }
+
+        if (changed) {
+          useAppStore.setState({ library: nextLibrary, stats: nextStats });
+        }
+      },
     }
   )
 );

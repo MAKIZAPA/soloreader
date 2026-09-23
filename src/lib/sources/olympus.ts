@@ -189,13 +189,49 @@ export class OlympusSource implements SourceProvider {
   }
 
   async search(query: string, page = 1): Promise<{ items: MangaItem[]; hasNextPage: boolean }> {
-    const cleanQuery = query.trim().toLowerCase();
-    if (!cleanQuery) {
+    const normQuery = query
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!normQuery) {
       return this.getPopular(page);
     }
 
     const series = await this.fetchSeriesCache();
-    const filtered = series.filter((item) => item.name.toLowerCase().includes(cleanQuery));
+    const queryWords = normQuery.split(" ").filter((w) => w.length > 1);
+
+    const filtered = series.filter((item) => {
+      const normName = item.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const normSlug = item.slug
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      if (normName.includes(normQuery) || normSlug.includes(normQuery)) {
+        return true;
+      }
+
+      if (queryWords.length > 1) {
+        return queryWords.every((w) => normName.includes(w) || normSlug.includes(w));
+      }
+
+      return false;
+    });
 
     const pageSize = 24;
     const start = (page - 1) * pageSize;
@@ -230,18 +266,53 @@ export class OlympusSource implements SourceProvider {
     if (!metaRes.ok) {
       // Slug might have changed or been formatted differently in Mihon
       const allSeries = await this.fetchSeriesCache();
-      const normInput = cleanSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const found = allSeries.find((s) => {
-        const normSlug = s.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
-        const normName = s.name.toLowerCase().replace(/[^a-z0-9]/g, "");
-        return (
-          normSlug === normInput ||
-          normName === normInput ||
-          normSlug.includes(normInput) ||
-          normInput.includes(normSlug) ||
-          String(s.id) === cleanSlug
-        );
+      const normInput = cleanSlug
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+
+      // 1. Exact match on slug or name
+      let found = allSeries.find((s) => {
+        const normSlug = s.slug
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        const normName = s.name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]/g, "");
+        return normSlug === normInput || normName === normInput;
       });
+
+      // 2. Prefix / base slug match (e.g. lider-kim vs lider-kim-20260922-080150808)
+      if (!found && normInput.length >= 6) {
+        found = allSeries.find((s) => {
+          const normSlug = s.slug
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, "");
+          const normName = s.name
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]/g, "");
+          return (
+            normSlug.startsWith(normInput) ||
+            normInput.startsWith(normSlug) ||
+            normName.startsWith(normInput) ||
+            normInput.startsWith(normName)
+          );
+        });
+      }
+
+      // 3. Fallback to numeric ID only if cleanSlug is digits
+      if (!found && /^\d+$/.test(cleanSlug)) {
+        found = allSeries.find((s) => String(s.id) === cleanSlug);
+      }
 
       if (found && found.slug !== cleanSlug) {
         cleanSlug = found.slug;

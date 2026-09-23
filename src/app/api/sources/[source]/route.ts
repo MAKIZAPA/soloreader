@@ -18,7 +18,7 @@ export async function GET(
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action") || "popular";
   const page = parseInt(searchParams.get("page") || "1", 10);
-  const query = searchParams.get("query") || "";
+  const query = searchParams.get("query") || searchParams.get("q") || "";
   const id = searchParams.get("id") || "";
   const chapterId = searchParams.get("chapterId") || "";
 

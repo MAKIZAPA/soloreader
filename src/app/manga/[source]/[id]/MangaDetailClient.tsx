@@ -51,16 +51,57 @@ export function MangaDetailClient({
   // Relink modal state
   const [relinkOpen, setRelinkOpen] = useState(false);
 
+  function normalizeSimple(str: string): string {
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  }
+
   // Find corresponding entry in library if exists
   const effectiveSource = initialDetails?.source || fallbackSource || "external";
   const effectiveId = initialDetails?.id || fallbackId || "";
   const libraryKey = `${effectiveSource}:${effectiveId}`;
 
+  const targetTitleNorm = initialDetails?.title ? normalizeSimple(initialDetails.title) : "";
+  const targetIdNorm = normalizeSimple(effectiveId);
+  const fallbackIdNorm = fallbackId ? normalizeSimple(fallbackId) : "";
+
   const libEntry =
     library[libraryKey] ||
-    Object.values(library).find(
-      (e) => e.manga.id === effectiveId || e.manga.slug === effectiveId
-    );
+    Object.values(library).find((e) => {
+      if (e.manga.id === effectiveId || e.manga.slug === effectiveId) return true;
+      if (fallbackId && (e.manga.id === fallbackId || e.manga.slug === fallbackId)) return true;
+
+      const entryIdNorm = normalizeSimple(e.manga.id);
+      const entrySlugNorm = normalizeSimple(e.manga.slug || "");
+
+      // Base slug prefix match (e.g. lider-kim vs lider-kim-20260922-080150808)
+      if (
+        (targetIdNorm.length >= 5 && (entryIdNorm.startsWith(targetIdNorm) || targetIdNorm.startsWith(entryIdNorm))) ||
+        (targetIdNorm.length >= 5 && (entrySlugNorm.startsWith(targetIdNorm) || targetIdNorm.startsWith(entrySlugNorm))) ||
+        (fallbackIdNorm.length >= 5 && (entryIdNorm.startsWith(fallbackIdNorm) || fallbackIdNorm.startsWith(entryIdNorm)))
+      ) {
+        return true;
+      }
+
+      // Exact title match check (e.g. "Líder Kim" in library vs "Lider Kim" on Olympus)
+      if (targetTitleNorm.length >= 3) {
+        const entryTitleNorm = normalizeSimple(e.manga.title);
+        if (entryTitleNorm === targetTitleNorm) return true;
+      }
+
+      return false;
+    });
+
+  const isTitleMismatch = Boolean(
+    initialDetails?.title &&
+    libEntry?.manga.title &&
+    normalizeSimple(initialDetails.title) !== normalizeSimple(libEntry.manga.title) &&
+    !normalizeSimple(initialDetails.title).includes(normalizeSimple(libEntry.manga.title)) &&
+    !normalizeSimple(libEntry.manga.title).includes(normalizeSimple(initialDetails.title))
+  );
 
   const mangaStats =
     stats[libraryKey] ||
@@ -185,8 +226,31 @@ export function MangaDetailClient({
 
       {/* Main Container */}
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {/* Banner if title discrepancy detected */}
+        {isTitleMismatch && (
+          <div className="mb-6 rounded-2xl border border-amber-800/60 bg-amber-950/30 p-4 text-xs text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="font-semibold text-amber-300 flex items-center gap-1.5">
+                <AlertCircle className="size-4 shrink-0" />
+                <span>Discrepancia de fuente detectada</span>
+              </div>
+              <p className="text-[11px] text-neutral-400 leading-relaxed">
+                Esta obra en tu biblioteca corresponde a <b>«{libEntry?.manga.title}»</b>, pero el enlace remoto abrió <b>«{details.title}»</b>. Pulsa a continuación para corregirla y vincularla a la versión correcta.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setRelinkOpen(true)}
+              className="shrink-0 flex items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-black hover:bg-amber-400 transition"
+            >
+              <Link2 className="size-3.5" />
+              <span>Vincular {libEntry?.manga.title}</span>
+            </button>
+          </div>
+        )}
+
         {/* Banner if external source or unlinked */}
-        {isExternal && (
+        {isExternal && !isTitleMismatch && (
           <div className="mb-6 rounded-2xl border border-amber-800/40 bg-amber-950/20 p-4 text-xs text-amber-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <div className="font-semibold text-amber-300 flex items-center gap-1.5">
@@ -421,19 +485,33 @@ export function MangaDetailClient({
               const chNumClean = String(ch.number || "").replace(/[^0-9.]/g, "");
               const chNumFloat = parseFloat(chNumClean);
 
+              const readNumsSet = new Set(
+                (libEntry?.readChapterNumbers || []).map((n) =>
+                  parseFloat(String(n).replace(/[^0-9.]/g, ""))
+                )
+              );
+
+              const lastReadFloat = libEntry?.lastReadChapterNumber
+                ? parseFloat(String(libEntry.lastReadChapterNumber).replace(/[^0-9.]/g, ""))
+                : NaN;
+
               const isLastRead =
                 libEntry?.lastReadChapterId === ch.id ||
-                (Boolean(chNumClean) && libEntry?.lastReadChapterNumber === chNumClean);
+                (!isNaN(chNumFloat) && !isNaN(lastReadFloat) && chNumFloat === lastReadFloat);
 
               const isRead =
                 isLastRead ||
                 Boolean(libEntry?.readChapterIds && libEntry.readChapterIds.includes(ch.id)) ||
-                Boolean(chNumClean && libEntry?.readChapterNumbers && libEntry.readChapterNumbers.includes(chNumClean)) ||
+                (!isNaN(chNumFloat) && readNumsSet.has(chNumFloat)) ||
+                (!isNaN(chNumFloat) && !isNaN(lastReadFloat) && chNumFloat <= lastReadFloat && chNumFloat > 0) ||
                 Boolean(
-                  !isNaN(chNumFloat) &&
-                  libEntry?.lastReadChapterNumber &&
-                  chNumFloat <= parseFloat(libEntry.lastReadChapterNumber.replace(/[^0-9.]/g, "")) &&
-                  chNumFloat > 0
+                  libEntry?.savedChapters &&
+                  libEntry.savedChapters.some(
+                    (sc) =>
+                      sc.read &&
+                      (sc.id === ch.id ||
+                        parseFloat(String(sc.number).replace(/[^0-9.]/g, "")) === chNumFloat)
+                  )
                 ) ||
                 Boolean(ch.read);
 
@@ -550,7 +628,7 @@ export function MangaDetailClient({
       <RelinkModal
         isOpen={relinkOpen}
         onClose={() => setRelinkOpen(false)}
-        manga={details}
+        manga={isTitleMismatch && libEntry ? libEntry.manga : details}
         onRelink={handleApplyRelink}
       />
     </div>
