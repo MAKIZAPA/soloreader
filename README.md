@@ -3,7 +3,7 @@
   <h1>LECTOR MANGA</h1>
 
   <p><b>La Suite de Lectura Web & Local para Manhwas, Mangas y Webtoons</b></p>
-  <p><i>Arquitectura abierta inspirada en Tachiyomi y Tachimanga. Scraping en tiempo real para Olympus Scan, integración nativa con MangaDex API v5, lector offline y proxy streaming anti-hotlink compatible con Vercel.</i></p>
+  <p><i>Arquitectura abierta inspirada en Tachiyomi y Tachimanga. Scraping en tiempo real para Olympus Scan, Dragon Translation, MangaDex y Rncalation. Autenticación ligera serverless para Vercel, tracking con AniList y lector offline sin publicidad.</i></p>
 
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="License" /></a>
@@ -12,7 +12,8 @@
     <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
     <img src="https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
     <img src="https://img.shields.io/badge/Vercel_Ready-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
-    <img src="https://img.shields.io/badge/Tachiyomi_Style-10b981?style=for-the-badge&logo=bookstack&logoColor=white" alt="Tachiyomi" />
+    <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+    <img src="https://img.shields.io/badge/AniList_Sync-02A9FF?style=for-the-badge&logo=anilist&logoColor=white" alt="AniList" />
   </p>
 
   <br/>
@@ -53,9 +54,33 @@
   </tr>
   <tr>
     <td width="50%">
+      <img src="https://img.shields.io/badge/SCRAPING-RNCALATION_ONLINE-8b5cf6?style=flat-square" alt="Rncalation" /><br/>
+      <b>Scraping para Rncalation</b><br/>
+      Conector especializado para el catálogo de Rncalation (Traducciones Amistosas / Knight No Scan). Búsqueda de manhwas y novelas, selector de capítulos y lectura secuencial de páginas.
+    </td>
+    <td width="50%">
       <img src="https://img.shields.io/badge/CATALOG-MANGADEX_v5_API-06b6d4?style=flat-square" alt="MangaDex" /><br/>
       <b>Catálogo Global MangaDex v5</b><br/>
       Acceso a millones de títulos con soporte multilingüe (Español Latino, Español España e Inglés), filtrado por popularidad y servidor de imágenes <i>@home</i> sin publicidad intrusiva.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/AUTH-VERCEL_SERVERLESS_ACCOUNTS-10b981?style=flat-square" alt="Auth" /><br/>
+      <b>Cuentas de Usuario & Sincronización en la Nube</b><br/>
+      Sistema de autenticación ligero y seguro sin requerir correo electrónico. Contraseñas protegidas mediante derivación criptográfica <code>scrypt</code> con sal aleatoria y cookies seguras HttpOnly. Compatible con PostgreSQL serverless (Neon, Supabase) en Vercel y almacenamiento local automático en desarrollo.
+    </td>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/TRACKER-ANILIST_&_MIHON-02a9ff?style=flat-square" alt="AniList" /><br/>
+      <b>Seguimiento con AniList (Mihon & Web)</b><br/>
+      Integración directa con AniList mediante su API GraphQL pública. Permite consultar el progreso de lectura sincronizado desde Mihon (con soporte de inicio de sesión con Google) e importar estados directamente a la biblioteca local.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/SYNC-MIHON_PROTOBUF_BACKUP-10b981?style=flat-square" alt="Mihon Backup" /><br/>
+      <b>Importador de Backups Mihon & Tachiyomi</b><br/>
+      Descompresor y decodificador nativo de archivos <code>.tachibk</code>, <code>.proto.gz</code> y <code>.json</code>. Detección semántica automática con normalización NFD de tildes para vincular capítulos leídos a las fuentes activas.
     </td>
     <td width="50%">
       <img src="https://img.shields.io/badge/READER-WEBTOON_CASCADE-8b5cf6?style=flat-square" alt="Webtoon" /><br/>
@@ -77,26 +102,14 @@
   </tr>
   <tr>
     <td width="50%">
-      <img src="https://img.shields.io/badge/STATE-ZUSTAND_LOCALSTORAGE-475569?style=flat-square" alt="Library" /><br/>
-      <b>Biblioteca Persistente & Historial</b><br/>
-      Gestión de biblioteca dividida por estados (Leyendo, Completados, Por Leer), reanudación automática en el último capítulo leído y registro cronológico de sesiones de lectura.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/DEPLOY-VERCEL_&_NODEJS-1e40af?style=flat-square" alt="Deploy" /><br/>
-      <b>Compatibilidad Total con Vercel</b><br/>
-      Construido sobre Next.js 16 App Router con Route Handlers serverless. Funciona tanto de forma local con Node.js como desplegado con un clic en Vercel sin límites de imágenes.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
       <img src="https://img.shields.io/badge/STATS-MIHON_&_TACHIMANGA-f59e0b?style=flat-square" alt="Stats" /><br/>
       <b>Estadísticas de Biblioteca & Tiempo de Lectura</b><br/>
       Contador de series en biblioteca, capítulos totales leídos, desglose por estado y ranking descendente por tiempo activo con detección de inactividad (60s).
     </td>
     <td width="50%">
-      <img src="https://img.shields.io/badge/SYNC-MIHON_PROTOBUF_BACKUP-10b981?style=flat-square" alt="Mihon Backup" /><br/>
-      <b>Importador de Backups Mihon & Tachiyomi</b><br/>
-      Descompresor y decodificador nativo de archivos <code>.tachibk</code>, <code>.proto.gz</code> y <code>.json</code>. Migración instantánea de biblioteca, capítulos y portadas con privacidad local.
+      <img src="https://img.shields.io/badge/DEPLOY-VERCEL_&_NODEJS-1e40af?style=flat-square" alt="Deploy" /><br/>
+      <b>Compatibilidad Total con Vercel</b><br/>
+      Construido sobre Next.js 16 App Router con Route Handlers serverless. Funciona tanto de forma local con Node.js como desplegado con un clic en Vercel sin límites de imágenes.
     </td>
   </tr>
 </table>
@@ -111,6 +124,19 @@ Para garantizar que el proyecto pueda ser alojado con seguridad en **GitHub** y 
 2. **Framework de Visualización Neutral**: El software actúa como un navegador especializado o lector RSS, interpretando datos públicos a petición exclusiva del usuario.
 3. **Mecanismo de Desacople**: Las fuentes son tratadas como proveedores modulares externos y no forman parte de una base de datos propietaria.
 4. **Respeto a los Creadores**: Todos los derechos pertenecen a los autores, editoriales originales y equipos de scanlation.
+
+---
+
+## Seguridad & Privacidad en Git
+
+Para subir este proyecto a **GitHub** sin comprometer tu información personal o secretos:
+
+- El archivo `.gitignore` excluye estrictamente:
+  - Archivos de respaldo personal: `*.tachibk`, `*.proto.gz`, `*.backup`, `backups/`.
+  - Bases de datos locales: `*.sqlite`, `*.sqlite3`, `*.db`, `.local-data/`.
+  - Secretos y variables de entorno: `.env`, `.env*.local`.
+  - Datos de compilación y temporales: `.next/`, `build/`, `.vercel/`.
+- Puedes hacer `git push` a tu repositorio público o privado en GitHub con total tranquilidad; ningún historial de lectura local ni archivo de backup se subirá al repositorio.
 
 ---
 
@@ -141,22 +167,31 @@ npm run dev
 
 ## Despliegue en Vercel
 
-Lector Manga está optimizado para ejecutarse en la infraestructura serverless de **Vercel**:
+Lector Manga está completamente optimizado para ejecutarse en la infraestructura serverless de **Vercel**:
 
-### Opción 1: Mediante la CLI de Vercel
-```bash
-# 1. Instalar la CLI de Vercel si no la tienes
-npm i -g vercel
+### 1. Variables de Entorno (Opcional para Cuentas en la Nube)
+Para que los usuarios puedan guardar sus cuentas, biblioteca e historial en la nube de Vercel de forma permanente:
+1. Crea una base de datos PostgreSQL gratuita en [Neon.tech](https://neon.tech) o [Supabase.com](https://supabase.com) (toma menos de 1 minuto y no requiere tarjeta).
+2. En el panel de tu proyecto en Vercel (**Settings &gt; Environment Variables**), agrega:
+   - `DATABASE_URL`: La URL de conexión PostgreSQL (ej. `postgresql://usuario:pass@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require`).
+   - `SESSION_SECRET`: Una cadena de texto aleatoria de al menos 32 caracteres para firmar las cookies de sesión.
 
-# 2. Desplegar directamente desde el proyecto
-vercel --prod
-```
+*Nota:* Si no configuras `DATABASE_URL`, la aplicación funcionará de manera normal utilizando la biblioteca local del navegador (`localStorage`) para cada dispositivo.
 
-### Opción 2: Mediante el Panel de GitHub
+### 2. Despliegue con un Clic vía GitHub
 1. Haz un push de este repositorio a tu cuenta de GitHub: `https://github.com/MAKIZAPA/lector-manga`.
 2. En [vercel.com](https://vercel.com), selecciona **Add New Project** e importa el repositorio `lector-manga`.
-3. Vercel detectará automáticamente la configuración de **Next.js**. Haz clic en **Deploy**.
-4. ¡Tu lector estará disponible en producción en segundos con certificado SSL gratuito!
+3. En **Environment Variables**, añade `DATABASE_URL` y `SESSION_SECRET` (si deseas persistencia multi-dispositivo).
+4. Haz clic en **Deploy**. ¡Tu lector estará en línea en segundos con dominio y SSL gratuitos!
+
+### 3. Despliegue mediante Vercel CLI
+```bash
+# 1. Instalar la CLI de Vercel
+npm i -g vercel
+
+# 2. Iniciar sesión y desplegar a producción
+vercel --prod
+```
 
 ---
 
@@ -193,7 +228,7 @@ vercel --prod
 
 ## Autor & Agradecimientos
 
-- **Desarrollado y diseñado por:** [@makizapa](https://github.com/MAKIZAPA)
+- **Desarrollado y mantenido por:** [@makizapa](https://github.com/MAKIZAPA)
 - **Inspiración arquitectónica:** Ecosistemas de código abierto [Tachiyomi](https://github.com/tachiyomiorg), [Mihon](https://github.com/mihonapp) y [Suwayomi](https://github.com/Suwayomi).
 
 ---

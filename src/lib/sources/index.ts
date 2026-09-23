@@ -2,17 +2,20 @@ import { SourceId, SourceProvider } from "@/types";
 import { olympusSource } from "./olympus";
 import { dragonSource } from "./dragon";
 import { mangaDexSource } from "./mangadex";
+import { rncalationSource } from "./rncalation";
 
 export const sources: Record<Exclude<SourceId, "local" | "external">, SourceProvider> = {
   olympus: olympusSource,
   dragon: dragonSource,
   mangadex: mangaDexSource,
+  rncalation: rncalationSource,
 };
 
 export function getSource(id: SourceId): SourceProvider {
   if (id === "olympus") return olympusSource;
   if (id === "dragon") return dragonSource;
   if (id === "mangadex") return mangaDexSource;
+  if (id === "rncalation") return rncalationSource;
   return olympusSource;
 }
 
@@ -34,5 +37,11 @@ export const sourceList: { id: SourceId; name: string; description: string; lang
     name: "MangaDex",
     description: "Plataforma comunitaria global sin anuncios y con API abierta para múltiples idiomas.",
     lang: "Español / Inglés",
+  },
+  {
+    id: "rncalation",
+    name: "Rncalation",
+    description: "Scanlation en español especializado en Manhwa y Novelas (Traducciones Amistosas / Knight No Scan).",
+    lang: "Español",
   },
 ];

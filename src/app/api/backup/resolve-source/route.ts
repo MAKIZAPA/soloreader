@@ -69,8 +69,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Search providers in order of preferred priority: Olympus -> MangaDex -> Dragon
-    const sourcesToSearch: SourceId[] = ["olympus", "mangadex", "dragon"];
+    // Search providers in order of preferred priority: Olympus -> MangaDex -> Dragon -> Rncalation
+    const sourcesToSearch: SourceId[] = ["olympus", "mangadex", "dragon", "rncalation"];
 
     let bestMatch: MangaItem | null = null;
     let highestScore = 0;

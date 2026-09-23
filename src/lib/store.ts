@@ -70,6 +70,13 @@ interface AppState {
   importMihonBackup: (mangas: MihonManga[], mode?: "merge" | "replace") => void;
   exportBackup: () => string;
 
+  // Cloud Data Synchronization
+  mergeCloudData: (cloudData: {
+    library?: Record<string, LibraryEntry>;
+    history?: HistoryEntry[];
+    stats?: Record<string, MangaReadingStats>;
+  }) => void;
+
   // Reader Settings
   readerSettings: ReaderSettings;
   updateReaderSettings: (settings: Partial<ReaderSettings>) => void;
@@ -500,6 +507,23 @@ export const useAppStore = create<AppState>()(
       updateReaderSettings: (partial) =>
         set((state) => ({
           readerSettings: { ...state.readerSettings, ...partial },
+        })),
+      mergeCloudData: (cloudData) =>
+        set((state) => ({
+          library: {
+            ...state.library,
+            ...(cloudData.library || {}),
+          },
+          history: [
+            ...(cloudData.history || []),
+            ...state.history.filter(
+              (h) => !(cloudData.history || []).some((ch) => ch.chapterId === h.chapterId)
+            ),
+          ].slice(0, 150),
+          stats: {
+            ...state.stats,
+            ...(cloudData.stats || {}),
+          },
         })),
     }),
     {

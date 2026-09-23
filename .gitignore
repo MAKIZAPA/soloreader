@@ -40,3 +40,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# User backups, exports, and private data
+*.tachibk
+*.proto.gz
+*.backup
+*.bak
+backups/
+private/
+uploads/
+
+# Local databases and storage
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.db
+*.db-journal
+.local-data/
+data/*.json
+data/*.db
+data/*.sqlite
