@@ -18,11 +18,20 @@ import {
   RefreshCw,
   Share2,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { AniListModal } from "@/components/tracker/AniListModal";
+import { SourceId } from "@/types";
+
+const SOURCE_INFO: Record<string, { name: string; tag: string; dotColor: string }> = {
+  olympus: { name: "Olympus", tag: "Manhwa HD", dotColor: "bg-emerald-400" },
+  dragon: { name: "Dragon", tag: "Webtoons", dotColor: "bg-rose-400" },
+  mangadex: { name: "MangaDex", tag: "Global", dotColor: "bg-sky-400" },
+  rncalation: { name: "Rncalation", tag: "Novelas & Manhwa", dotColor: "bg-purple-400" },
+};
 
 interface NavbarProps {
   onOpenSearch?: () => void;
@@ -61,6 +70,23 @@ export function Navbar({
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // Dynamic Source Selector State
+  const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
+  const sourceMenuRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnterSource = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setSourceMenuOpen(true);
+  };
+
+  const handleMouseLeaveSource = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setSourceMenuOpen(false);
+    }, 160);
+  };
+
   // Check session on mount
   useEffect(() => {
     fetch("/api/auth/me")
@@ -73,11 +99,14 @@ export function Navbar({
       .catch(() => {});
   }, []);
 
-  // Close user dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setUserMenuOpen(false);
+      }
+      if (sourceMenuRef.current && !sourceMenuRef.current.contains(event.target as Node)) {
+        setSourceMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -253,56 +282,86 @@ export function Navbar({
 
           {/* Actions: Source switcher, Search, AniList, Account */}
           <div className="flex items-center gap-1.5 sm:gap-2.5">
-            {/* Source Switcher */}
-            <div className="flex items-center rounded-lg bg-neutral-950 p-0.5 border border-neutral-800 text-[11px] sm:text-xs">
+            {/* Dynamic Hover/Click Source Selector */}
+            <div
+              className="relative"
+              ref={sourceMenuRef}
+              onMouseEnter={handleMouseEnterSource}
+              onMouseLeave={handleMouseLeaveSource}
+            >
               <button
                 type="button"
-                onClick={() => setActiveSource("olympus")}
+                onClick={() => setSourceMenuOpen((v) => !v)}
                 className={cn(
-                  "px-2 sm:px-2.5 py-1 font-medium rounded-md transition",
-                  activeSource === "olympus"
-                    ? "bg-neutral-800 text-white shadow-xs"
-                    : "text-neutral-400 hover:text-neutral-200"
+                  "flex items-center gap-1.5 sm:gap-2 rounded-lg bg-neutral-950 px-2.5 py-1.5 border border-neutral-800 text-[11px] sm:text-xs font-medium text-neutral-200 hover:border-neutral-700 hover:bg-neutral-900 transition",
+                  sourceMenuOpen && "border-neutral-700 bg-neutral-900"
                 )}
+                title="Cambiar fuente de lectura (pasa el cursor o haz clic para ver todas)"
               >
-                Olympus
+                <span
+                  className={cn(
+                    "size-2 rounded-full shrink-0",
+                    SOURCE_INFO[activeSource]?.dotColor || "bg-emerald-400"
+                  )}
+                />
+                <span className="font-semibold text-white">
+                  {SOURCE_INFO[activeSource]?.name || "Fuente"}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-3 text-neutral-400 transition-transform duration-200",
+                    sourceMenuOpen && "rotate-180 text-white"
+                  )}
+                />
               </button>
-              <button
-                type="button"
-                onClick={() => setActiveSource("dragon")}
-                className={cn(
-                  "px-2 sm:px-2.5 py-1 font-medium rounded-md transition",
-                  activeSource === "dragon"
-                    ? "bg-neutral-800 text-white shadow-xs"
-                    : "text-neutral-400 hover:text-neutral-200"
-                )}
-              >
-                Dragon
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveSource("mangadex")}
-                className={cn(
-                  "hidden xs:inline-block px-2 sm:px-2.5 py-1 font-medium rounded-md transition",
-                  activeSource === "mangadex"
-                    ? "bg-neutral-800 text-white shadow-xs"
-                    : "text-neutral-400 hover:text-neutral-200"
-                )}
-              >
-                MangaDex
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveSource("rncalation")}
-                className={cn(
-                  "hidden sm:inline-block px-2 sm:px-2.5 py-1 font-medium rounded-md transition",
-                  activeSource === "rncalation"
-                    ? "bg-neutral-800 text-white shadow-xs"
-                    : "text-neutral-400 hover:text-neutral-200"
-                )}
-              >
-                Rncalation
-              </button>
+
+              {/* Floating Dropdown displaying all 4 sources */}
+              {sourceMenuOpen && (
+                <div className="absolute left-0 sm:right-0 sm:left-auto mt-1.5 w-52 rounded-xl border border-neutral-800 bg-neutral-950/95 backdrop-blur-md p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-neutral-500 border-b border-neutral-800/80 mb-1">
+                    Fuentes de Lectura (4)
+                  </div>
+
+                  {(["olympus", "dragon", "mangadex", "rncalation"] as SourceId[]).map((srcId) => {
+                    const info = SOURCE_INFO[srcId];
+                    const isActive = activeSource === srcId;
+
+                    return (
+                      <button
+                        key={srcId}
+                        type="button"
+                        onClick={() => {
+                          setActiveSource(srcId);
+                          setSourceMenuOpen(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between rounded-lg px-2.5 py-2 text-xs transition text-left",
+                          isActive
+                            ? "bg-neutral-900 text-white font-semibold border border-neutral-800"
+                            : "text-neutral-400 hover:text-white hover:bg-neutral-900/60 border border-transparent"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={cn("size-2 rounded-full shrink-0", info.dotColor)} />
+                          <div>
+                            <p
+                              className={cn(
+                                "text-xs leading-none",
+                                isActive ? "text-white" : "text-neutral-300"
+                              )}
+                            >
+                              {info.name}
+                            </p>
+                            <p className="text-[10px] text-neutral-500 mt-0.5">{info.tag}</p>
+                          </div>
+                        </div>
+
+                        {isActive && <Check className="size-3.5 text-emerald-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Search Trigger */}
