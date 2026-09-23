@@ -24,7 +24,7 @@
 
   <sub>
     <a href="#características">Características</a> •
-    <a href="#arquitectura-legal--dmca">Legal & DMCA</a> •
+    <a href="#marco-legal--dmca">Legal & DMCA</a> •
     <a href="#instalación">Instalación</a> •
     <a href="#despliegue-en-vercel">Despliegue Vercel</a> •
     <a href="#atajos-de-teclado">Atajos</a> •
@@ -39,116 +39,20 @@
 
 ## Características
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SCRAPING-OLYMPUS_SCAN_API-10b981?style=flat-square" alt="Olympus" /><br/>
-      <b>Scraping Dinámico para Olympus Scan</b><br/>
-      Integración directa con los endpoints de Olympus Scan. Detección automática del dominio activo mediante <code>olympus.pages.dev</code>, optimización de portadas ultra-ligeras (reducción del 90% en peso) y páginas en alta definición.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SCRAPING-DRAGON_TRANSLATION-e11d48?style=flat-square" alt="Dragon" /><br/>
-      <b>Scraping para Dragon Translation</b><br/>
-      Integración completa mediante parsing de DOM y metadatos JSON para el catálogo de Dragon Translation. Rankings por vistas, últimos capítulos y visualización continua gapless.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SCRAPING-RNCALATION_ONLINE-8b5cf6?style=flat-square" alt="Rncalation" /><br/>
-      <b>Scraping para Rncalation</b><br/>
-      Conector especializado para el catálogo de Rncalation (Traducciones Amistosas / Knight No Scan). Búsqueda de manhwas y novelas, selector de capítulos y lectura secuencial de páginas.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/CATALOG-MANGADEX_v5_API-06b6d4?style=flat-square" alt="MangaDex" /><br/>
-      <b>Catálogo Global MangaDex v5</b><br/>
-      Acceso a millones de títulos con soporte multilingüe (Español Latino, Español España e Inglés), filtrado por popularidad y servidor de imágenes <i>@home</i> sin publicidad intrusiva.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SEARCH-GLOBAL_CROSS--SOURCE-00f0ff?style=flat-square" alt="Global Search" /><br/>
-      <b>Búsqueda Global Multicanal & Selector Dinámico</b><br/>
-      Buscador universal en tiempo real que consulta en paralelo Olympus, Dragon, MangaDex y Rncalation con filtros de fuente instantáneos. Selector dinámico en barra superior con animación hover y anti-parpadeo.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/FILTERS-STATUS_&_FORMATS-10b981?style=flat-square" alt="Filters" /><br/>
-      <b>Filtros de Estado & Formato en Catálogo</b><br/>
-      Filtra el catálogo entre obras <i>En emisión</i> (ongoing) y <i>Finalizadas</i> (completed), así como entre <i>Manhwas</i> (webtoons a color) y <i>Novelas</i> (traducciones de texto), con contador dinámico de títulos en tiempo real.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/TRACKER-ANILIST_BULK_SYNC-02a9ff?style=flat-square" alt="AniList" /><br/>
-      <b>Auto-Vincular & Sincronización en Masa con AniList</b><br/>
-      Escaneo progresivo por lotes con diccionario semántico para más de 120 manhwas traducidos al español, prevención de límites de tasa (HTTP 429), edición de capítulos leídos en vivo y vinculación manual asistida.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/AUTH-VERCEL_SERVERLESS_ACCOUNTS-10b981?style=flat-square" alt="Auth" /><br/>
-      <b>Cuentas de Usuario & Sincronización en la Nube</b><br/>
-      Sistema de autenticación ligero y seguro sin requerir correo electrónico. Contraseñas protegidas mediante derivación criptográfica <code>scrypt</code> con sal aleatoria y cookies seguras HttpOnly. Compatible con PostgreSQL serverless (Neon, Supabase) en Vercel y almacenamiento local automático en desarrollo.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SYNC-MIHON_PROTOBUF_BACKUP-10b981?style=flat-square" alt="Mihon Backup" /><br/>
-      <b>Importador de Backups Mihon & Tachiyomi</b><br/>
-      Descompresor y decodificador nativo de archivos <code>.tachibk</code>, <code>.proto.gz</code> y <code>.json</code>. Detección semántica automática con normalización NFD de tildes para vincular capítulos leídos a las fuentes activas.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/READER-WEBTOON_CASCADE-8b5cf6?style=flat-square" alt="Webtoon" /><br/>
-      <b>Lector Tipo Cascada (Webtoon) Continuo</b><br/>
-      Flujo vertical sin cortes (gapless) optimizado para manhwa y webtoon con cálculo dinámico por scroll e IntersectionObserver para tracking automático del progreso de lectura.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/SECURITY-ANTI--HOTLINK_PROXY-e11d48?style=flat-square" alt="Proxy" /><br/>
-      <b>Proxy de Streaming Anti-Hotlink</b><br/>
-      Ruta de streaming HTTP dedicada (<code>/api/proxy</code>) que reenvía encabezados User-Agent y Referer específicos, eludiendo bloqueos CORS y bloqueos de dominios de imágenes en servidores remotos.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/OFFLINE-LOCAL_READER_SANDBOX-00f0ff?style=flat-square" alt="Offline" /><br/>
-      <b>Lector de Archivos Locales 100% Offline</b><br/>
-      Módulo idéntico a la fuente local de Tachiyomi. Permite arrastrar o seleccionar imágenes desde el disco local para lectura inmediata en memoria, sin conexión a Internet y con privacidad absoluta.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/STATS-MIHON_&_TACHIMANGA-f59e0b?style=flat-square" alt="Stats" /><br/>
-      <b>Estadísticas de Biblioteca & Tiempo de Lectura</b><br/>
-      Contador de series en biblioteca, capítulos totales leídos, desglose por estado y ranking descendente por tiempo activo con detección de inactividad (60s).
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/DEPLOY-VERCEL_&_NODEJS-1e40af?style=flat-square" alt="Deploy" /><br/>
-      <b>Compatibilidad Total con Vercel</b><br/>
-      Construido sobre Next.js 16 App Router con Route Handlers serverless. Funciona tanto de forma local con Node.js como desplegado con un clic en Vercel sin límites de imágenes.
-    </td>
-  </tr>
-</table>
+* **Lector Cascada Continuo**: Modo vertical gapless optimizado para Manhwas, Webtoons y Mangas en móvil y escritorio.
+* **Multi-Fuente & Búsqueda Global**: Catálogo unificado con buscador en tiempo real y filtros por estado y formato.
+* **Sincronización con AniList**: Vinculación de biblioteca y actualización automática del progreso de capítulos leídos.
+* **Ecosistema Mihon & Tachiyomi**: Importador y exportador nativo de copias de seguridad (`.tachibk` y `.json`).
+* **Biblioteca & Estadísticas**: Guardado automático en el navegador y sincronización opcional con cuentas en la nube.
+* **Lector Offline**: Soporte para abrir carpetas e imágenes locales directamente desde tu dispositivo.
 
 ---
 
-## Arquitectura Legal & DMCA
+## Marco Legal & DMCA
 
-Para garantizar que el proyecto pueda ser alojado con seguridad en **GitHub** y desplegado en plataformas como **Vercel** sin riesgo de reclamos o suspensión, SoloReader implementa el mismo estándar legal que **Tachiyomi**, **Mihon**, **Paperback** y **Suwayomi**:
-
-1. **Política de Cero Alojamiento (Zero-Hosting Policy)**: El repositorio y el servidor no alojan, almacenan ni distribuyen ningún archivo de manga, imagen o traducción protegida por derechos de autor.
-2. **Framework de Visualización Neutral**: El software actúa como un navegador especializado o lector RSS, interpretando datos públicos a petición exclusiva del usuario.
-3. **Mecanismo de Desacople**: Las fuentes son tratadas como proveedores modulares externos y no forman parte de una base de datos propietaria.
-4. **Respeto a los Creadores**: Todos los derechos pertenecen a los autores, editoriales originales y equipos de scanlation.
-
----
-
-## Seguridad & Privacidad en Git
-
-Para subir este proyecto a **GitHub** sin comprometer tu información personal o secretos:
-
-- El archivo `.gitignore` excluye estrictamente:
-  - Archivos de respaldo personal: `*.tachibk`, `*.proto.gz`, `*.backup`, `backups/`.
-  - Bases de datos locales: `*.sqlite`, `*.sqlite3`, `*.db`, `.local-data/`.
-  - Secretos y variables de entorno: `.env`, `.env*.local`.
-  - Datos de compilación y temporales: `.next/`, `build/`, `.vercel/`.
-- Puedes hacer `git push` a tu repositorio público o privado en GitHub con total tranquilidad; ningún historial de lectura local ni archivo de backup se subirá al repositorio.
+1. **Cero Alojamiento**: Este software no aloja, almacena ni distribuye imágenes, capítulos ni contenido con derechos de autor.
+2. **Visualizador Neutral**: Funciona como un navegador especializado e indexador local a petición exclusiva del usuario.
+3. **Respeto a los Creadores**: Todos los derechos comerciales pertenecen a sus autores originales y grupos de scanlation.
 
 ---
 
