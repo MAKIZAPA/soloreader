@@ -435,11 +435,17 @@ export const useAppStore = create<AppState>()(
               read: c.read,
             }));
 
-            const lastReadChapterNum = m.lastReadChapterName
-              ? m.lastReadChapterName.match(/(\d+(\.\d+)?)/)?.[1] || m.lastReadChapterName
-              : m.readChapters > 0
-              ? String(m.readChapters)
-              : undefined;
+            const numericReadChapters = readChapterNumbers
+              .map((n) => parseFloat(n))
+              .filter((n) => !isNaN(n) && n > 0);
+
+            const maxFromList = numericReadChapters.length > 0 ? Math.max(...numericReadChapters) : 0;
+            const maxFromName = m.lastReadChapterName
+              ? parseFloat(m.lastReadChapterName.match(/(\d+(\.\d+)?)/)?.[1] || "0")
+              : 0;
+
+            const bestReadNum = Math.max(maxFromList, maxFromName, m.readChapters || 0);
+            const lastReadChapterNum = bestReadNum > 0 ? String(bestReadNum) : undefined;
 
             nextLibrary[key] = {
               manga: {

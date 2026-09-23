@@ -37,15 +37,77 @@ query ($username: String) {
 }
 `;
 
+const SEARCH_MANGA_QUERY = `
+query ($search: String) {
+  Page(perPage: 6) {
+    media(search: $search, type: MANGA) {
+      id
+      title {
+        romaji
+        english
+        native
+      }
+      coverImage {
+        large
+        medium
+      }
+      chapters
+      status
+      siteUrl
+      countryOfOrigin
+    }
+  }
+}
+`;
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const username = searchParams.get("username")?.trim();
+  const search = searchParams.get("search")?.trim();
 
-  if (!username) {
+  if (!username && !search) {
     return NextResponse.json(
-      { error: "El nombre de usuario de AniList es requerido." },
+      { error: "Se requiere un parámetro 'username' o 'search'." },
       { status: 400 }
     );
+  }
+
+  // Handle manual title search
+  if (search) {
+    try {
+      const res = await fetch(ANILIST_GRAPHQL_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          query: SEARCH_MANGA_QUERY,
+          variables: { search },
+        }),
+        signal: AbortSignal.timeout(8000),
+      });
+
+      if (!res.ok) {
+        return NextResponse.json(
+          { error: `Error de búsqueda en AniList (HTTP ${res.status}).` },
+          { status: res.status }
+        );
+      }
+
+      const data = await res.json();
+      const results = data?.data?.Page?.media || [];
+      return NextResponse.json({
+        success: true,
+        results,
+      });
+    } catch (error) {
+      console.error("[AniList Search API] Error:", error);
+      return NextResponse.json(
+        { error: "No se pudo realizar la búsqueda en AniList." },
+        { status: 500 }
+      );
+    }
   }
 
   try {

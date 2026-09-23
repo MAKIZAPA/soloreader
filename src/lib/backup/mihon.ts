@@ -63,6 +63,8 @@ export function parseMihonProtobuf(buffer: Uint8Array): MihonBackupResult {
         chapters: [],
       };
 
+      let maxReadChapterNum = -1;
+
       while (pos < endPos) {
         const mTag = Number(readVarint());
         if (mTag === 0) break;
@@ -119,7 +121,14 @@ export function parseMihonProtobuf(buffer: Uint8Array): MihonBackupResult {
           manga.totalChapters += 1;
           if (chapter.read) {
             manga.readChapters += 1;
-            manga.lastReadChapterName = chapter.name;
+            const parsedNum =
+              chapter.chapterNumber > 0
+                ? chapter.chapterNumber
+                : parseFloat(chapter.name.match(/(\d+(\.\d+)?)/)?.[1] || "0");
+            if (parsedNum >= maxReadChapterNum) {
+              maxReadChapterNum = parsedNum;
+              manga.lastReadChapterName = chapter.name;
+            }
           }
         } else if (mField === 100 && mWire === 0) {
           manga.favorite = readVarint() !== 0;
@@ -310,8 +319,20 @@ export function parseMihonJson(data: RawMihonBackupData): MihonBackupResult {
         }))
       : [];
 
-    const readChapters = chapters.filter((c: { read: boolean }) => c.read).length;
-    const lastRead = chapters.find((c: { read: boolean }) => c.read);
+    const readChaptersList = chapters.filter((c: { read: boolean }) => c.read);
+    const readChapters = readChaptersList.length;
+    let highestReadChapterName: string | undefined;
+    let maxReadNum = -1;
+    for (const c of readChaptersList) {
+      const num =
+        c.chapterNumber > 0
+          ? c.chapterNumber
+          : parseFloat(c.name.match(/(\d+(\.\d+)?)/)?.[1] || "0");
+      if (num >= maxReadNum) {
+        maxReadNum = num;
+        highestReadChapterName = c.name;
+      }
+    }
 
     let realReadingSeconds = 0;
     let lastReadTimestamp = 0;
@@ -341,7 +362,7 @@ export function parseMihonJson(data: RawMihonBackupData): MihonBackupResult {
       favorite: item.favorite !== false,
       totalChapters: chapters.length,
       readChapters,
-      lastReadChapterName: lastRead?.name,
+      lastReadChapterName: highestReadChapterName,
       realReadingSeconds: realReadingSeconds > 0 ? realReadingSeconds : undefined,
       lastReadTimestamp: lastReadTimestamp > 0 ? lastReadTimestamp : undefined,
       chapters,
