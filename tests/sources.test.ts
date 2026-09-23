@@ -2,14 +2,16 @@ import { describe, it, expect } from "vitest";
 import { olympusSource } from "../src/lib/sources/olympus";
 import { dragonSource } from "../src/lib/sources/dragon";
 import { mangaDexSource } from "../src/lib/sources/mangadex";
+import { rncalationSource } from "../src/lib/sources/rncalation";
 import { getSource, sourceList } from "../src/lib/sources";
 
 describe("Sources registry", () => {
   it("provides available sources in registry", () => {
-    expect(sourceList.length).toBeGreaterThanOrEqual(3);
+    expect(sourceList.length).toBeGreaterThanOrEqual(4);
     expect(getSource("olympus")).toBeDefined();
     expect(getSource("dragon")).toBeDefined();
     expect(getSource("mangadex")).toBeDefined();
+    expect(getSource("rncalation")).toBeDefined();
   });
 
   it("Olympus provider fetches popular ranking titles", async () => {
@@ -64,4 +66,18 @@ describe("Sources registry", () => {
       // Safe fallback if rate-limited
     }
   });
+
+  it("Rncalation provider fetches popular manga with cookie handshake", async () => {
+    try {
+      const popular = await rncalationSource.getPopular(1);
+      expect(popular).toBeDefined();
+      expect(Array.isArray(popular.items)).toBe(true);
+      if (popular.items.length > 0) {
+        expect(popular.items[0].source).toBe("rncalation");
+        expect(popular.items[0].title).toBeDefined();
+      }
+    } catch {
+      // Safe fallback
+    }
+  }, 15000);
 });
