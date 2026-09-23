@@ -26,7 +26,7 @@
     <a href="#características">Características</a> •
     <a href="#marco-legal--dmca">Legal & DMCA</a> •
     <a href="#instalación">Instalación</a> •
-    <a href="#despliegue-en-vercel">Despliegue Vercel</a> •
+    <a href="#despliegue">Despliegue</a> •
     <a href="#atajos-de-teclado">Atajos</a> •
     <a href="#comandos">Comandos</a> •
     <a href="#aviso-legal">Aviso Legal</a>
@@ -81,33 +81,22 @@ npm run dev
 
 ---
 
-## Despliegue en Vercel
+## Despliegue
 
-SoloReader está completamente optimizado para ejecutarse en la infraestructura serverless de **Vercel**:
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/MAKIZAPA/soloreader)
 
-### 1. Variables de Entorno (Opcional para Cuentas en la Nube)
-Para que los usuarios puedan guardar sus cuentas, biblioteca e historial en la nube de Vercel de forma permanente:
-1. Crea una base de datos PostgreSQL gratuita en [Neon.tech](https://neon.tech) o [Supabase.com](https://supabase.com) (toma menos de 1 minuto y no requiere tarjeta).
-2. En el panel de tu proyecto en Vercel (**Settings &gt; Environment Variables**), agrega:
-   - `DATABASE_URL`: La URL de conexión PostgreSQL (ej. `postgresql://usuario:pass@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require`).
-   - `SESSION_SECRET`: Una cadena de texto aleatoria de al menos 32 caracteres para firmar las cookies de sesión.
+<details>
+<summary><b>Variables de entorno opcionales (sincronización en la nube)</b></summary>
+<br/>
 
-*Nota:* Si no configuras `DATABASE_URL`, la aplicación funcionará de manera normal utilizando la biblioteca local del navegador (`localStorage`) para cada dispositivo.
+| Variable | Descripción |
+| :--- | :--- |
+| `DATABASE_URL` | String de conexión PostgreSQL (Neon / Supabase) para cuentas multi-dispositivo |
+| `SESSION_SECRET` | Cadena aleatoria de 32 caracteres para firmar sesiones |
 
-### 2. Despliegue con un Clic vía GitHub
-1. Haz un push de este repositorio a tu cuenta de GitHub: `https://github.com/MAKIZAPA/lector-manga` (o renómbralo a `soloreader`).
-2. En [vercel.com](https://vercel.com), selecciona **Add New Project** e importa tu repositorio.
-3. En **Environment Variables**, añade `DATABASE_URL` y `SESSION_SECRET` (si deseas persistencia multi-dispositivo).
-4. Haz clic en **Deploy**. ¡Tu lector estará en línea en segundos con dominio y SSL gratuitos!
+*Nota: Si no se configuran, la aplicación guarda todo de forma 100% funcional en el almacenamiento local del navegador.*
 
-### 3. Despliegue mediante Vercel CLI
-```bash
-# 1. Instalar la CLI de Vercel
-npm i -g vercel
-
-# 2. Iniciar sesión y desplegar a producción
-vercel --prod
-```
+</details>
 
 ---
 
