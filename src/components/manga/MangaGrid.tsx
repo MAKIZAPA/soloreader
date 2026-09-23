@@ -1,6 +1,4 @@
-"use client";
-
-import { MangaItem } from "@/types";
+import { LibraryEntry, MangaItem } from "@/types";
 import { MangaCard } from "./MangaCard";
 import { SearchX } from "lucide-react";
 
@@ -9,6 +7,9 @@ interface MangaGridProps {
   loading?: boolean;
   emptyTitle?: string;
   emptyDescription?: string;
+  onRelink?: (manga: MangaItem) => void;
+  onRemove?: (manga: MangaItem) => void;
+  libraryMap?: Record<string, LibraryEntry>;
 }
 
 export function MangaGrid({
@@ -16,6 +17,9 @@ export function MangaGrid({
   loading = false,
   emptyTitle = "No se encontraron títulos",
   emptyDescription = "Intenta buscar con otros términos o cambiar de fuente.",
+  onRelink,
+  onRemove,
+  libraryMap,
 }: MangaGridProps) {
   if (loading) {
     return (
@@ -50,9 +54,18 @@ export function MangaGrid({
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 sm:gap-4">
-      {items.map((manga) => (
-        <MangaCard key={`${manga.source}:${manga.id}`} manga={manga} />
-      ))}
+      {items.map((manga) => {
+        const libEntry = libraryMap ? libraryMap[`${manga.source}:${manga.id}`] : undefined;
+        return (
+          <MangaCard
+            key={`${manga.source}:${manga.id}`}
+            manga={manga}
+            onRelink={onRelink}
+            onRemove={onRemove}
+            chaptersRead={libEntry?.totalChaptersRead}
+          />
+        );
+      })}
     </div>
   );
 }

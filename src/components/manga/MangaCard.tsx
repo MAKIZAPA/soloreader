@@ -1,21 +1,23 @@
-"use client";
-
 import { useState } from "react";
 import Link from "next/link";
-import { Bookmark, BookOpen } from "lucide-react";
+import { Bookmark, BookOpen, Link2, Trash2 } from "lucide-react";
 import { MangaItem } from "@/types";
 import { formatProxyUrl, optimizeCoverUrl, cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 
 interface MangaCardProps {
   manga: MangaItem;
+  onRelink?: (manga: MangaItem) => void;
+  onRemove?: (manga: MangaItem) => void;
+  chaptersRead?: number;
 }
 
-export function MangaCard({ manga }: MangaCardProps) {
+export function MangaCard({ manga, onRelink, onRemove, chaptersRead }: MangaCardProps) {
   const [imgError, setImgError] = useState(false);
   const { isInLibrary, addToLibrary, removeFromLibrary } = useAppStore();
 
   const inLibrary = isInLibrary(manga.id);
+  const isExternal = Boolean(manga.isExternal || manga.source === "external");
   const optimizedCover = manga.coverUrl ? optimizeCoverUrl(manga.coverUrl) : "";
   const proxyCover = optimizedCover ? formatProxyUrl(optimizedCover) : "";
 
@@ -58,26 +60,65 @@ export function MangaCard({ manga }: MangaCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
 
         {/* Source Badge */}
-        <div className="absolute top-2 left-2">
-          <span className="rounded-md bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-neutral-300 border border-white/10 backdrop-blur-xs uppercase tracking-wider">
-            {manga.source}
+        <div className="absolute top-2 left-2 flex items-center gap-1">
+          <span
+            className={cn(
+              "rounded-md px-2 py-0.5 text-[10px] font-semibold border backdrop-blur-xs uppercase tracking-wider",
+              isExternal
+                ? "bg-amber-950/80 text-amber-300 border-amber-800/60"
+                : "bg-black/70 text-neutral-300 border-white/10"
+            )}
+          >
+            {isExternal ? manga.originalSource || "Externa" : manga.source}
           </span>
         </div>
 
-        {/* Bookmark Button */}
-        <button
-          type="button"
-          onClick={toggleLibrary}
-          className={cn(
-            "absolute top-2 right-2 flex size-7 items-center justify-center rounded-lg border backdrop-blur-xs transition",
-            inLibrary
-              ? "bg-emerald-500/90 text-black border-emerald-400"
-              : "bg-black/60 text-white/80 border-white/10 hover:bg-black/90 hover:text-white"
+        {/* Action Buttons */}
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          {onRelink && isExternal && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRelink(manga);
+              }}
+              className="flex size-7 items-center justify-center rounded-lg bg-amber-500/90 text-black border border-amber-400 hover:bg-amber-400 transition"
+              title="Vincular con fuente activa"
+            >
+              <Link2 className="size-3.5" />
+            </button>
           )}
-          title={inLibrary ? "En biblioteca (Clic para quitar)" : "Guardar en biblioteca"}
-        >
-          <Bookmark className="size-3.5 fill-current" />
-        </button>
+
+          {onRemove ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(manga);
+              }}
+              className="flex size-7 items-center justify-center rounded-lg bg-black/70 text-neutral-400 hover:text-red-400 hover:bg-red-950/60 border border-white/10 transition"
+              title="Eliminar de la biblioteca"
+            >
+              <Trash2 className="size-3.5" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={toggleLibrary}
+              className={cn(
+                "flex size-7 items-center justify-center rounded-lg border backdrop-blur-xs transition",
+                inLibrary
+                  ? "bg-emerald-500/90 text-black border-emerald-400"
+                  : "bg-black/60 text-white/80 border-white/10 hover:bg-black/90 hover:text-white"
+              )}
+              title={inLibrary ? "En biblioteca (Clic para quitar)" : "Guardar en biblioteca"}
+            >
+              <Bookmark className="size-3.5 fill-current" />
+            </button>
+          )}
+        </div>
 
         {/* Bottom Metadata in Image */}
         <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-neutral-300 font-medium">
@@ -109,13 +150,37 @@ export function MangaCard({ manga }: MangaCardProps) {
       </div>
 
       {/* Title & Metadata */}
-      <div className="flex flex-1 flex-col p-2.5">
+      <div className="flex flex-1 flex-col justify-between p-2.5">
         <h3
           className="text-xs font-semibold text-neutral-200 line-clamp-2 leading-snug group-hover:text-white transition"
           title={manga.title}
         >
           {manga.title}
         </h3>
+
+        <div className="flex items-center justify-between gap-1 mt-1 text-[11px]">
+          {chaptersRead !== undefined && chaptersRead > 0 ? (
+            <span className="text-[10px] font-mono text-emerald-400 font-semibold">
+              {chaptersRead} {chaptersRead === 1 ? "cap leído" : "caps leídos"}
+            </span>
+          ) : (
+            <span />
+          )}
+
+          {isExternal && onRelink && (
+            <span
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRelink(manga);
+              }}
+              className="flex items-center gap-1 text-[10px] font-semibold text-amber-400 hover:text-amber-300 transition"
+            >
+              <Link2 className="size-3" />
+              <span>Vincular</span>
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

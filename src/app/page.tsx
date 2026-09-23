@@ -26,6 +26,8 @@ import { SearchModal } from "@/components/layout/SearchModal";
 import { LegalModal } from "@/components/legal/LegalModal";
 import { LocalReaderModal } from "@/components/local/LocalReaderModal";
 import { BackupModal } from "@/components/backup/BackupModal";
+import { RelinkModal } from "@/components/manga/RelinkModal";
+import { CleanLibraryModal } from "@/components/manga/CleanLibraryModal";
 import { formatProxyUrl, optimizeCoverUrl, formatDuration, formatDate, cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -38,6 +40,11 @@ export default function HomePage() {
     clearHistory,
     removeHistoryItem,
     clearStats,
+    removeFromLibrary,
+    removeFromLibraryByKey,
+    clearLibrary,
+    removeExternalMangas,
+    relinkManga,
   } = useAppStore();
 
   const [activeTab, setActiveTab] = useState<"explore" | "library" | "history" | "stats">("explore");
@@ -52,6 +59,9 @@ export default function HomePage() {
   const [legalOpen, setLegalOpen] = useState(false);
   const [localOpen, setLocalOpen] = useState(false);
   const [backupOpen, setBackupOpen] = useState(false);
+  const [cleanOpen, setCleanOpen] = useState(false);
+  const [relinkOpen, setRelinkOpen] = useState(false);
+  const [relinkTarget, setRelinkTarget] = useState<MangaItem | null>(null);
 
   // Library filter
   const [libraryFilter, setLibraryFilter] = useState<string>("all");
@@ -93,10 +103,36 @@ export default function HomePage() {
 
   // Filtered library
   const libraryEntries = Object.values(library);
+  const externalCount = libraryEntries.filter(
+    (e) => e.manga.isExternal || e.manga.source === "external"
+  ).length;
+
   const filteredLibrary = libraryEntries.filter((entry) => {
     if (libraryFilter === "all") return true;
+    if (libraryFilter === "external") {
+      return Boolean(entry.manga.isExternal || entry.manga.source === "external");
+    }
     return entry.status === libraryFilter;
   });
+
+  const handleRemoveFromLibrary = (manga: MangaItem) => {
+    const key = Object.keys(library).find((k) => library[k].manga.id === manga.id);
+    if (key) {
+      removeFromLibraryByKey(key);
+    } else {
+      removeFromLibrary(manga.id);
+    }
+  };
+
+  const handleRelinkTarget = (target: MangaItem) => {
+    if (!relinkTarget) return;
+    const oldKey =
+      Object.keys(library).find((k) => library[k].manga.id === relinkTarget.id) ||
+      `${relinkTarget.source}:${relinkTarget.id}`;
+    relinkManga(oldKey, target.source, target.id, target.title, target.coverUrl);
+    setRelinkOpen(false);
+    setRelinkTarget(null);
+  };
 
   // Library statistics (Mihon Style)
   const totalLibraryMangas = libraryEntries.length;
@@ -329,35 +365,86 @@ export default function HomePage() {
         {/* TAB 2: LIBRARY */}
         {activeTab === "library" && (
           <div className="space-y-6">
-            {/* Filter Pills */}
-            <div className="flex flex-wrap items-center gap-2">
-              {[
-                { id: "all", label: "Todos" },
-                { id: "reading", label: "Leyendo" },
-                { id: "completed", label: "Completados" },
-                { id: "plan_to_read", label: "Por Leer" },
-              ].map((pill) => (
-                <button
-                  key={pill.id}
-                  type="button"
-                  onClick={() => setLibraryFilter(pill.id)}
-                  className={cn(
-                    "rounded-xl px-3 py-1.5 text-xs font-semibold border transition",
-                    libraryFilter === pill.id
-                      ? "bg-neutral-800 text-white border-neutral-700"
-                      : "bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-white"
-                  )}
-                >
-                  {pill.label}
-                </button>
-              ))}
+            {/* Filter Pills & Actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800/80 pb-3">
+              <div className="flex flex-wrap items-center gap-2">
+                {[
+                  { id: "all", label: "Todos", count: libraryEntries.length },
+                  { id: "reading", label: "Leyendo", count: readingCount },
+                  { id: "completed", label: "Completados", count: completedCount },
+                  { id: "plan_to_read", label: "Por Leer", count: planToReadCount },
+                  ...(externalCount > 0
+                    ? [
+                        {
+                          id: "external",
+                          label: "Por Vincular",
+                          count: externalCount,
+                          badgeColor: "amber",
+                        },
+                      ]
+                    : []),
+                ].map((pill) => (
+                  <button
+                    key={pill.id}
+                    type="button"
+                    onClick={() => setLibraryFilter(pill.id)}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border transition",
+                      libraryFilter === pill.id
+                        ? "bg-neutral-800 text-white border-neutral-700 shadow-xs"
+                        : "bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-white hover:bg-neutral-900/60"
+                    )}
+                  >
+                    <span>{pill.label}</span>
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.2 text-[10px] font-mono",
+                        pill.badgeColor === "amber"
+                          ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          : libraryFilter === pill.id
+                          ? "bg-neutral-700 text-neutral-200"
+                          : "bg-neutral-900 text-neutral-500"
+                      )}
+                    >
+                      {pill.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {libraryEntries.length > 0 && (
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setCleanOpen(true)}
+                    className="flex items-center gap-1.5 rounded-xl bg-neutral-900/80 border border-neutral-800 px-3 py-1.5 text-xs font-semibold text-neutral-300 hover:text-red-400 hover:border-red-900/50 hover:bg-red-950/20 transition"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Limpiar Biblioteca</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Library Grid */}
             <MangaGrid
               items={filteredLibrary.map((entry) => entry.manga)}
-              emptyTitle="Tu biblioteca está vacía"
-              emptyDescription="Explora el catálogo y pulsa el icono de marcador para guardar tus series favoritas aquí."
+              libraryMap={library}
+              onRelink={(manga) => {
+                setRelinkTarget(manga);
+                setRelinkOpen(true);
+              }}
+              onRemove={handleRemoveFromLibrary}
+              emptyTitle={
+                libraryFilter === "external"
+                  ? "No hay títulos externos por vincular"
+                  : "Tu biblioteca está vacía"
+              }
+              emptyDescription={
+                libraryFilter === "external"
+                  ? "Todas las series de tu biblioteca ya están vinculadas con fuentes activas."
+                  : "Explora el catálogo o importa una copia de respaldo para comenzar tu colección."
+              }
             />
           </div>
         )}
@@ -891,6 +978,23 @@ export default function HomePage() {
       <LegalModal isOpen={legalOpen} onClose={() => setLegalOpen(false)} />
       <LocalReaderModal isOpen={localOpen} onClose={() => setLocalOpen(false)} />
       <BackupModal isOpen={backupOpen} onClose={() => setBackupOpen(false)} />
+      <RelinkModal
+        isOpen={relinkOpen}
+        onClose={() => {
+          setRelinkOpen(false);
+          setRelinkTarget(null);
+        }}
+        manga={relinkTarget}
+        onRelink={handleRelinkTarget}
+      />
+      <CleanLibraryModal
+        isOpen={cleanOpen}
+        onClose={() => setCleanOpen(false)}
+        totalCount={libraryEntries.length}
+        externalCount={externalCount}
+        onClearExternal={removeExternalMangas}
+        onClearAll={clearLibrary}
+      />
     </div>
   );
 }

@@ -20,6 +20,9 @@ interface AppState {
   library: Record<string, LibraryEntry>;
   addToLibrary: (manga: MangaItem, status?: LibraryEntry["status"]) => void;
   removeFromLibrary: (mangaId: string) => void;
+  removeFromLibraryByKey: (key: string) => void;
+  clearLibrary: () => void;
+  removeExternalMangas: () => void;
   updateLibraryStatus: (mangaId: string, status: LibraryEntry["status"]) => void;
   updateLibraryProgress: (
     mangaId: string,
@@ -109,6 +112,23 @@ export const useAppStore = create<AppState>()(
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
             if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+              delete next[key];
+            }
+          }
+          return { library: next };
+        }),
+      removeFromLibraryByKey: (key) =>
+        set((state) => {
+          const next = { ...state.library };
+          delete next[key];
+          return { library: next };
+        }),
+      clearLibrary: () => set({ library: {} }),
+      removeExternalMangas: () =>
+        set((state) => {
+          const next = { ...state.library };
+          for (const key of Object.keys(next)) {
+            if (next[key].manga.isExternal || next[key].manga.source === "external") {
               delete next[key];
             }
           }

@@ -15,12 +15,12 @@ import {
   CheckCheck,
   Link2,
   AlertCircle,
-  X,
   Clock,
 } from "lucide-react";
-import { MangaDetails, MangaItem, SourceId } from "@/types";
+import { MangaDetails, MangaItem } from "@/types";
 import { formatProxyUrl, formatDate, formatDuration, cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
+import { RelinkModal } from "@/components/manga/RelinkModal";
 
 interface MangaDetailClientProps {
   details: MangaDetails | null;
@@ -48,11 +48,8 @@ export function MangaDetailClient({
   const [sortDesc, setSortDesc] = useState(true);
   const [filterQuery, setFilterQuery] = useState("");
 
-  // Relink modal states
+  // Relink modal state
   const [relinkOpen, setRelinkOpen] = useState(false);
-  const [searchTargetQuery, setSearchTargetQuery] = useState("");
-  const [searchingSource, setSearchingSource] = useState(false);
-  const [searchResults, setSearchResults] = useState<MangaItem[]>([]);
 
   // Find corresponding entry in library if exists
   const effectiveSource = initialDetails?.source || fallbackSource || "external";
@@ -138,36 +135,6 @@ export function MangaDetailClient({
     libEntry?.lastReadChapterId ||
     (details.chapters.length > 0 ? sortedChapters[sortedChapters.length - 1]?.id : undefined);
 
-  // Search in sources for relinking
-  const handleSearchRelink = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const query = searchTargetQuery.trim() || details.title;
-    if (!query) return;
-
-    setSearchingSource(true);
-    setSearchResults([]);
-
-    const sources: SourceId[] = ["olympus", "mangadex", "dragon"];
-    const found: MangaItem[] = [];
-
-    for (const s of sources) {
-      try {
-        const res = await fetch(`/api/sources/${s}?action=search&q=${encodeURIComponent(query)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data.items)) {
-            found.push(...data.items.slice(0, 4));
-          }
-        }
-      } catch (err) {
-        console.warn(`Search failed for ${s}:`, err);
-      }
-    }
-
-    setSearchResults(found);
-    setSearchingSource(false);
-  };
-
   const handleApplyRelink = (target: MangaItem) => {
     relinkManga(libraryKey, target.source, target.id, target.title, target.coverUrl);
     setRelinkOpen(false);
@@ -232,11 +199,7 @@ export function MangaDetailClient({
             </div>
             <button
               type="button"
-              onClick={() => {
-                setSearchTargetQuery(details.title);
-                setRelinkOpen(true);
-                handleSearchRelink();
-              }}
+              onClick={() => setRelinkOpen(true)}
               className="shrink-0 flex items-center gap-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3.5 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition"
             >
               <Link2 className="size-3.5" />
@@ -343,11 +306,7 @@ export function MangaDetailClient({
               ) : isExternal ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchTargetQuery(details.title);
-                    setRelinkOpen(true);
-                    handleSearchRelink();
-                  }}
+                  onClick={() => setRelinkOpen(true)}
                   className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-black hover:bg-amber-400 transition"
                 >
                   <Link2 className="size-4" />
@@ -365,11 +324,7 @@ export function MangaDetailClient({
               {/* Relink trigger for online series too */}
               <button
                 type="button"
-                onClick={() => {
-                  setSearchTargetQuery(details.title);
-                  setRelinkOpen(true);
-                  handleSearchRelink();
-                }}
+                onClick={() => setRelinkOpen(true)}
                 className="flex items-center gap-1.5 rounded-xl bg-neutral-900 border border-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-300 hover:text-white hover:border-neutral-700 transition"
                 title="Cambiar o vincular a otra fuente"
               >
@@ -591,100 +546,13 @@ export function MangaDetailClient({
         </div>
       </div>
 
-      {/* Relink / Source Matcher Modal */}
-      {relinkOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-          <div className="relative flex flex-col w-full max-w-lg max-h-[80vh] rounded-2xl bg-neutral-950 border border-neutral-800 shadow-2xl overflow-hidden text-neutral-300">
-            <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <Link2 className="size-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Vincular con Fuente Activa</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setRelinkOpen(false)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-900 transition"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4 overflow-y-auto">
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Busca esta serie en <b>Olympus</b>, <b>MangaDex</b> o <b>Dragon</b> para leer online conservando todo tu tiempo y progreso.
-              </p>
-
-              <form onSubmit={handleSearchRelink} className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="size-3.5 text-neutral-500 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    value={searchTargetQuery}
-                    onChange={(e) => setSearchTargetQuery(e.target.value)}
-                    placeholder="Título del manga..."
-                    className="w-full rounded-xl bg-neutral-900 border border-neutral-800 pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-700"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={searchingSource}
-                  className="rounded-xl bg-emerald-500 px-4 py-2 text-xs font-bold text-black hover:bg-emerald-400 disabled:opacity-50 transition"
-                >
-                  {searchingSource ? "Buscando..." : "Buscar"}
-                </button>
-              </form>
-
-              {/* Search Results */}
-              <div className="space-y-2 max-h-60 overflow-y-auto pt-2">
-                {searchResults.map((item) => (
-                  <div
-                    key={`${item.source}:${item.id}`}
-                    onClick={() => handleApplyRelink(item)}
-                    className="flex items-center justify-between p-3 rounded-xl border border-neutral-800/80 bg-neutral-900/40 hover:bg-neutral-900 hover:border-neutral-700 cursor-pointer transition"
-                  >
-                    <div className="flex items-center gap-3 min-w-0 pr-2">
-                      <div className="size-10 rounded-lg bg-neutral-950 overflow-hidden shrink-0 border border-neutral-800">
-                        {item.coverUrl ? (
-                          <img
-                            src={formatProxyUrl(item.coverUrl)}
-                            alt=""
-                            className="size-full object-cover"
-                          />
-                        ) : (
-                          <div className="size-full flex items-center justify-center text-neutral-600">
-                            <BookOpen className="size-4" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-white truncate">
-                          {item.title}
-                        </div>
-                        <div className="text-[10px] text-neutral-400 uppercase font-semibold">
-                          Fuente: {item.source}
-                        </div>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/20 transition"
-                    >
-                      Vincular
-                    </button>
-                  </div>
-                ))}
-
-                {!searchingSource && searchResults.length === 0 && searchTargetQuery && (
-                  <div className="py-6 text-center text-xs text-neutral-500">
-                    No se encontraron coincidencias directas. Prueba con palabras clave más cortas.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Relink Modal */}
+      <RelinkModal
+        isOpen={relinkOpen}
+        onClose={() => setRelinkOpen(false)}
+        manga={details}
+        onRelink={handleApplyRelink}
+      />
     </div>
   );
 }
