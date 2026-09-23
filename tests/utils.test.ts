@@ -14,12 +14,11 @@ describe("Utility functions", () => {
     );
   });
 
-  it("formatProxyUrl handles direct CDNs and proxied hosts properly", () => {
-    // Open CDN host passes through directly to avoid proxy bottleneck
+  it("formatProxyUrl routes external images through proxy and preserves data/blob URLs", () => {
+    // External images route through proxy to bypass CORS, hotlinking, and ISP blocks
     const cdnUrl = "https://media.imagesolymp.xyz/comics/test.webp";
-    expect(formatProxyUrl(cdnUrl)).toBe(cdnUrl);
+    expect(formatProxyUrl(cdnUrl)).toContain("/api/proxy?url=");
 
-    // Host requiring referer and anti-hotlink bypass routes through /api/proxy
     const protectedUrl = "https://dragontranslation.org/wp-content/uploads/test.jpg";
     const res = formatProxyUrl(protectedUrl);
     expect(res).toContain("/api/proxy?url=");

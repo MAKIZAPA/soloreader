@@ -19,10 +19,6 @@ export function formatProxyUrl(rawUrl: string, referer?: string): string {
   if (rawUrl.startsWith("data:") || rawUrl.startsWith("blob:")) {
     return rawUrl;
   }
-  // Fast path: CDNs with open CORS and no anti-hotlink restrictions load directly in the browser
-  if (rawUrl.includes("imagesolymp.xyz") || rawUrl.includes("uploads.mangadex.org")) {
-    return rawUrl;
-  }
 
   const params = new URLSearchParams();
   params.set("url", rawUrl);

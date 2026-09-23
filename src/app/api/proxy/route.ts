@@ -45,6 +45,8 @@ export async function GET(request: NextRequest) {
         referer = "https://olympusbiblioteca.com/";
       } else if (parsedTarget.hostname.includes("dragontranslation")) {
         referer = "https://dragontranslation.org/";
+      } else if (parsedTarget.hostname.includes("mangadex")) {
+        referer = "https://mangadex.org/";
       } else {
         referer = `${parsedTarget.protocol}//${parsedTarget.host}/`;
       }

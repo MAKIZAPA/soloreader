@@ -168,26 +168,34 @@ export class MangaDexSource implements SourceProvider {
       .map((t) => t.attributes?.name?.es || t.attributes?.name?.en)
       .filter(Boolean);
 
-    // Fetch chapters prioritized in Spanish, falling back to English
+    // Fetch all chapters (paginated up to 1500) prioritizing Spanish, then English
     const chapters: ChapterItem[] = [];
     try {
-      const chUrl = `${MANGADEX_API}/manga/${id}/feed?translatedLanguage[]=es&translatedLanguage[]=es-la&translatedLanguage[]=en&order[chapter]=desc&limit=100`;
-      const chRes = await fetch(chUrl, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
-      if (chRes.ok) {
+      const seenChapters = new Set<string>();
+      let offset = 0;
+      const limit = 500;
+      let hasMore = true;
+      let totalFetched = 0;
+      const maxToFetch = 1500;
+
+      while (hasMore && totalFetched < maxToFetch) {
+        const chUrl = `${MANGADEX_API}/manga/${targetId}/feed?translatedLanguage[]=es&translatedLanguage[]=es-la&translatedLanguage[]=en&order[chapter]=desc&limit=${limit}&offset=${offset}`;
+        const chRes = await fetch(chUrl, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
+        if (!chRes.ok) break;
+
         const chJson = await chRes.json();
         const rawChapters = chJson.data || [];
+        if (rawChapters.length === 0) break;
 
-        // Deduplicate by chapter number, preferring Spanish
-        const seenChapters = new Set<string>();
         for (const ch of rawChapters) {
           const num = ch.attributes.chapter || "0";
-          const lang = ch.attributes.translatedLanguage;
+          const lang = ch.attributes.translatedLanguage || "es";
           const key = `${num}_${lang}`;
           if (!seenChapters.has(key)) {
             seenChapters.add(key);
             chapters.push({
               id: ch.id,
-              mangaId: id,
+              mangaId: targetId,
               source: "mangadex",
               number: num,
               title: ch.attributes.title || `Capítulo ${num} [${lang.toUpperCase()}]`,
@@ -196,6 +204,12 @@ export class MangaDexSource implements SourceProvider {
               url: `https://mangadex.org/chapter/${ch.id}`,
             });
           }
+        }
+
+        totalFetched += rawChapters.length;
+        offset += limit;
+        if (offset >= (chJson.total || 0) || rawChapters.length < limit) {
+          hasMore = false;
         }
       }
     } catch (e) {
