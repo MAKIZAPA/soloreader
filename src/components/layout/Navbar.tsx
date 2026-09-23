@@ -23,6 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
 import { AuthModal } from "@/components/auth/AuthModal";
+import { WelcomeModal } from "@/components/auth/WelcomeModal";
 import { AniListModal } from "@/components/tracker/AniListModal";
 import { SourceId } from "@/types";
 
@@ -64,6 +65,7 @@ export function Navbar({
   // Auth & Sync State
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [aniListModalOpen, setAniListModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -87,17 +89,48 @@ export function Navbar({
     }, 160);
   };
 
-  // Check session on mount
+  // Check session on mount: if not logged in and not previously dismissed in this session, show welcome modal
   useEffect(() => {
+    const checkWelcomePrompt = (isAuthenticated: boolean) => {
+      if (isAuthenticated) return;
+      if (typeof window !== "undefined") {
+        const hasAniList = Boolean(localStorage.getItem("anilist_access_token"));
+        const dismissed = sessionStorage.getItem("soloreader_welcome_dismissed") === "true";
+        if (!hasAniList && !dismissed) {
+          setWelcomeModalOpen(true);
+        }
+      }
+    };
+
     fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.authenticated && data.user) {
           setUser(data.user);
+        } else {
+          checkWelcomePrompt(false);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        checkWelcomePrompt(false);
+      });
   }, []);
+
+  const handleDismissWelcome = () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("soloreader_welcome_dismissed", "true");
+    }
+    setWelcomeModalOpen(false);
+  };
+
+  const handleWelcomeSuccess = (userData: { id: string; username: string }) => {
+    setUser(userData);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("soloreader_welcome_dismissed", "true");
+    }
+    setWelcomeModalOpen(false);
+    handleSyncPush();
+  };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -180,7 +213,7 @@ export function Navbar({
               <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-900 border border-neutral-800 text-emerald-400">
                 <BookOpen className="size-4" strokeWidth={2} />
               </div>
-              <span className="text-sm font-bold tracking-tight text-white hidden xs:inline">Lector Manga</span>
+              <span className="text-sm font-bold tracking-tight text-white hidden xs:inline">SoloReader</span>
             </Link>
 
             {/* Navigation Links */}
@@ -566,6 +599,13 @@ export function Navbar({
       </header>
 
       {/* Modals */}
+      <WelcomeModal
+        isOpen={welcomeModalOpen}
+        onClose={handleDismissWelcome}
+        onSuccess={handleWelcomeSuccess}
+        onOpenAniList={() => setAniListModalOpen(true)}
+      />
+
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}

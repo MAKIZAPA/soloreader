@@ -43,7 +43,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
               <span>1. Naturaleza del Software (Reader Engine)</span>
             </div>
             <p>
-              <b>Lector Manga</b> es un framework de lectura e indexación local y de código abierto.
+              <b>SoloReader</b> es un framework de lectura e indexación local y de código abierto.
               Funciona bajo el mismo estándar técnico y legal que proyectos consolidados como <b>Tachiyomi</b>, <b>Mihon</b>, <b>Paperback</b> y <b>Suwayomi</b>.
             </p>
           </div>
@@ -67,7 +67,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
               <span>3. Propiedad Intelectual & Marcas</span>
             </div>
             <p>
-              Todos los mangas, manhwas, cómics, personajes y logotipos son propiedad exclusiva de sus respectivos autores, editoriales originales y grupos de traducción (scanlations). Lector Manga no reclama ningún derecho comercial ni de autor sobre dicho material.
+              Todos los mangas, manhwas, cómics, personajes y logotipos son propiedad exclusiva de sus respectivos autores, editoriales originales y grupos de traducción (scanlations). SoloReader no reclama ningún derecho comercial ni de autor sobre dicho material.
             </p>
           </div>
 
@@ -77,7 +77,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
               <span>4. Política de Notificaciones DMCA</span>
             </div>
             <p>
-              Al tratarse de una herramienta de visualización (similar a un navegador web o lector RSS), Lector Manga no tiene control sobre los servidores de terceros indexados. Cualquier reclamación sobre derechos de autor debe ser dirigida al proveedor original de la fuente o al servicio de alojamiento de imágenes correspondiente.
+              Al tratarse de una herramienta de visualización (similar a un navegador web o lector RSS), SoloReader no tiene control sobre los servidores de terceros indexados. Cualquier reclamación sobre derechos de autor debe ser dirigida al proveedor original de la fuente o al servicio de alojamiento de imágenes correspondiente.
             </p>
           </div>
 
@@ -106,7 +106,7 @@ export function LegalModal({ isOpen, onClose }: LegalModalProps) {
               <li><b>MangaDex & Fansubs Comunitarios</b>: Por fomentar un archivo abierto y sin fines de lucro para los lectores globales.</li>
             </ul>
             <p className="text-[11px] text-neutral-400 pt-1">
-              Lector Manga preserva los créditos y marcas de agua originales de cada grupo. Si perteneces a un equipo de scanlation y deseas que tu enlace sea modificado o excluido del índice, puedes abrir un Issue en el repositorio oficial.
+              SoloReader preserva los créditos y marcas de agua originales de cada grupo. Si perteneces a un equipo de scanlation y deseas que tu enlace sea modificado o excluido del índice, puedes abrir un Issue en el repositorio oficial.
             </p>
           </div>
         </div>

@@ -44,10 +44,10 @@
 
     <!-- Title and Subtitles -->
     <text x="84" y="36" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="900" fill="#ffffff" letter-spacing="1">
-      LECTOR MANGA
+      SOLOREADER
     </text>
     <text x="84" y="58" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" fill="#10b981" letter-spacing="2">
-      SUITE DE LECTURA MINIMALISTA TIPO TACHIYOMI &amp; TACHIMANGA
+      SUITE DE LECTURA MINIMALISTA TIPO TACHIYOMI &amp; MIHON
     </text>
 
     <!-- Description -->

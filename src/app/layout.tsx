@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lector Manga • Suite de Lectura Minimalista",
+  title: "SoloReader • Suite de Lectura Minimalista",
   description:
-    "Suite de lectura local y web para Manhwas, Mangas y Webtoons inspirada en Tachiyomi y Tachimanga. Compatible con Olympus Scan, MangaDex y archivos locales.",
+    "Suite de lectura local y web para Manhwas, Mangas y Webtoons inspirada en Tachiyomi y Mihon. Compatible con múltiples scans, AniList y sincronización en la nube.",
 };
 
 export default function RootLayout({

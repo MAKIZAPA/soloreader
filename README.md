@@ -1,9 +1,9 @@
 <div align="center">
 
-  <h1>LECTOR MANGA</h1>
+  <h1>SOLOREADER</h1>
 
   <p><b>La Suite de Lectura Web & Local para Manhwas, Mangas y Webtoons</b></p>
-  <p><i>Arquitectura abierta inspirada en Tachiyomi y Tachimanga. Scraping en tiempo real para Olympus Scan, Dragon Translation, MangaDex y Rncalation. Autenticación ligera serverless para Vercel, tracking con AniList y lector offline sin publicidad.</i></p>
+  <p><i>Arquitectura abierta inspirada en Tachiyomi y Mihon. Scraping en tiempo real para Olympus Scan, Dragon Translation, MangaDex y Rncalation. Autenticación ligera serverless para Vercel, tracking con AniList y lector offline sin publicidad.</i></p>
 
   <p>
     <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge" alt="License" /></a>
@@ -18,7 +18,7 @@
 
   <br/>
 
-  <img src="assets/banner.svg" alt="Lector Manga Banner" width="100%" />
+  <img src="assets/banner.svg" alt="SoloReader Banner" width="100%" />
 
   <br/><br/>
 
@@ -130,7 +130,7 @@
 
 ## Arquitectura Legal & DMCA
 
-Para garantizar que el proyecto pueda ser alojado con seguridad en **GitHub** y desplegado en plataformas como **Vercel** sin riesgo de reclamos o suspensión, Lector Manga implementa el mismo estándar legal que **Tachiyomi**, **Mihon**, **Paperback** y **Suwayomi**:
+Para garantizar que el proyecto pueda ser alojado con seguridad en **GitHub** y desplegado en plataformas como **Vercel** sin riesgo de reclamos o suspensión, SoloReader implementa el mismo estándar legal que **Tachiyomi**, **Mihon**, **Paperback** y **Suwayomi**:
 
 1. **Política de Cero Alojamiento (Zero-Hosting Policy)**: El repositorio y el servidor no alojan, almacenan ni distribuyen ningún archivo de manga, imagen o traducción protegida por derechos de autor.
 2. **Framework de Visualización Neutral**: El software actúa como un navegador especializado o lector RSS, interpretando datos públicos a petición exclusiva del usuario.
@@ -160,10 +160,10 @@ Para subir este proyecto a **GitHub** sin comprometer tu información personal o
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/MAKIZAPA/lector-manga.git
+git clone https://github.com/MAKIZAPA/soloreader.git
 
 # 2. Entrar al directorio del proyecto
-cd lector-manga
+cd soloreader
 
 # 3. Instalar las dependencias
 npm install
@@ -179,7 +179,7 @@ npm run dev
 
 ## Despliegue en Vercel
 
-Lector Manga está completamente optimizado para ejecutarse en la infraestructura serverless de **Vercel**:
+SoloReader está completamente optimizado para ejecutarse en la infraestructura serverless de **Vercel**:
 
 ### 1. Variables de Entorno (Opcional para Cuentas en la Nube)
 Para que los usuarios puedan guardar sus cuentas, biblioteca e historial en la nube de Vercel de forma permanente:
@@ -191,8 +191,8 @@ Para que los usuarios puedan guardar sus cuentas, biblioteca e historial en la n
 *Nota:* Si no configuras `DATABASE_URL`, la aplicación funcionará de manera normal utilizando la biblioteca local del navegador (`localStorage`) para cada dispositivo.
 
 ### 2. Despliegue con un Clic vía GitHub
-1. Haz un push de este repositorio a tu cuenta de GitHub: `https://github.com/MAKIZAPA/lector-manga`.
-2. En [vercel.com](https://vercel.com), selecciona **Add New Project** e importa el repositorio `lector-manga`.
+1. Haz un push de este repositorio a tu cuenta de GitHub: `https://github.com/MAKIZAPA/lector-manga` (o renómbralo a `soloreader`).
+2. En [vercel.com](https://vercel.com), selecciona **Add New Project** e importa tu repositorio.
 3. En **Environment Variables**, añade `DATABASE_URL` y `SESSION_SECRET` (si deseas persistencia multi-dispositivo).
 4. Haz clic en **Deploy**. ¡Tu lector estará en línea en segundos con dominio y SSL gratuitos!
 

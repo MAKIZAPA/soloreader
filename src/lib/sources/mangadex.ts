@@ -2,7 +2,7 @@ import { ChapterItem, ChapterPages, MangaDetails, MangaItem, SourceProvider } fr
 
 const MANGADEX_API = "https://api.mangadex.org";
 const HEADERS = {
-  "User-Agent": "LectorManga/1.0.0 (https://github.com/MAKIZAPA/lector-manga)",
+  "User-Agent": "SoloReader/1.0.0 (https://github.com/MAKIZAPA/soloreader)",
   "Accept": "application/json",
 };
 

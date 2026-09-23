@@ -950,7 +950,7 @@ export default function HomePage() {
       <footer className="mt-16 border-t border-neutral-900 bg-neutral-950/40 py-8">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 text-xs text-neutral-400">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-neutral-300">Lector Manga</span>
+            <span className="font-semibold text-neutral-300">SoloReader</span>
             <span>•</span>
             <span>Creado por</span>
             <a
