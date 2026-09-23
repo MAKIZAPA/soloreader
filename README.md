@@ -66,14 +66,26 @@
   </tr>
   <tr>
     <td width="50%">
+      <img src="https://img.shields.io/badge/SEARCH-GLOBAL_CROSS--SOURCE-00f0ff?style=flat-square" alt="Global Search" /><br/>
+      <b>Búsqueda Global Multicanal & Selector Dinámico</b><br/>
+      Buscador universal en tiempo real que consulta en paralelo Olympus, Dragon, MangaDex y Rncalation con filtros de fuente instantáneos. Selector dinámico en barra superior con animación hover y anti-parpadeo.
+    </td>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/FILTERS-STATUS_&_FORMATS-10b981?style=flat-square" alt="Filters" /><br/>
+      <b>Filtros de Estado & Formato en Catálogo</b><br/>
+      Filtra el catálogo entre obras <i>En emisión</i> (ongoing) y <i>Finalizadas</i> (completed), así como entre <i>Manhwas</i> (webtoons a color) y <i>Novelas</i> (traducciones de texto), con contador dinámico de títulos en tiempo real.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="https://img.shields.io/badge/TRACKER-ANILIST_BULK_SYNC-02a9ff?style=flat-square" alt="AniList" /><br/>
+      <b>Auto-Vincular & Sincronización en Masa con AniList</b><br/>
+      Escaneo progresivo por lotes con diccionario semántico para más de 120 manhwas traducidos al español, prevención de límites de tasa (HTTP 429), edición de capítulos leídos en vivo y vinculación manual asistida.
+    </td>
+    <td width="50%">
       <img src="https://img.shields.io/badge/AUTH-VERCEL_SERVERLESS_ACCOUNTS-10b981?style=flat-square" alt="Auth" /><br/>
       <b>Cuentas de Usuario & Sincronización en la Nube</b><br/>
       Sistema de autenticación ligero y seguro sin requerir correo electrónico. Contraseñas protegidas mediante derivación criptográfica <code>scrypt</code> con sal aleatoria y cookies seguras HttpOnly. Compatible con PostgreSQL serverless (Neon, Supabase) en Vercel y almacenamiento local automático en desarrollo.
-    </td>
-    <td width="50%">
-      <img src="https://img.shields.io/badge/TRACKER-ANILIST_&_MIHON-02a9ff?style=flat-square" alt="AniList" /><br/>
-      <b>Seguimiento con AniList (Mihon & Web)</b><br/>
-      Integración directa con AniList mediante su API GraphQL pública. Permite consultar el progreso de lectura sincronizado desde Mihon (con soporte de inicio de sesión con Google) e importar estados directamente a la biblioteca local.
     </td>
   </tr>
   <tr>
