@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
+  ChapterItem,
   HistoryEntry,
   LibraryEntry,
   MangaItem,
@@ -25,6 +26,23 @@ interface AppState {
     chapterId: string,
     chapterNumber: string,
     page?: number
+  ) => void;
+  toggleChapterRead: (
+    mangaId: string,
+    chapterId: string,
+    chapterNumber?: string
+  ) => void;
+  markChaptersUpTo: (
+    mangaId: string,
+    chapterNumber: string,
+    allChapters?: ChapterItem[]
+  ) => void;
+  relinkManga: (
+    oldKey: string,
+    newSource: SourceId,
+    newId: string,
+    newTitle?: string,
+    newCover?: string
   ) => void;
   isInLibrary: (mangaId: string) => boolean;
 
@@ -111,18 +129,130 @@ export const useAppStore = create<AppState>()(
           const next = { ...state.library };
           for (const key of Object.keys(next)) {
             if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+              const readIds = new Set(next[key].readChapterIds || []);
+              const readNums = new Set(next[key].readChapterNumbers || []);
+              if (chapterId) readIds.add(chapterId);
+              const cleanNum = chapterNumber ? String(chapterNumber).replace(/[^0-9.]/g, "") : "";
+              if (cleanNum) readNums.add(cleanNum);
+
               next[key] = {
                 ...next[key],
                 lastReadChapterId: chapterId,
                 lastReadChapterNumber: chapterNumber,
                 lastReadAt: Date.now(),
                 lastReadPage: page,
-                totalChaptersRead: (next[key].totalChaptersRead || 0) + 1,
+                readChapterIds: Array.from(readIds),
+                readChapterNumbers: Array.from(readNums),
+                totalChaptersRead: Math.max(next[key].totalChaptersRead || 0, readNums.size || readIds.size),
               };
             }
           }
           return { library: next };
         }),
+
+      toggleChapterRead: (mangaId, chapterId, chapterNumber) =>
+        set((state) => {
+          const next = { ...state.library };
+          for (const key of Object.keys(next)) {
+            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+              const readIds = new Set(next[key].readChapterIds || []);
+              const readNums = new Set(next[key].readChapterNumbers || []);
+              const cleanNum = chapterNumber ? String(chapterNumber).replace(/[^0-9.]/g, "") : "";
+
+              const isCurrentlyRead =
+                readIds.has(chapterId) ||
+                (cleanNum && readNums.has(cleanNum)) ||
+                next[key].lastReadChapterId === chapterId;
+
+              if (isCurrentlyRead) {
+                readIds.delete(chapterId);
+                if (cleanNum) readNums.delete(cleanNum);
+              } else {
+                readIds.add(chapterId);
+                if (cleanNum) readNums.add(cleanNum);
+              }
+
+              next[key] = {
+                ...next[key],
+                readChapterIds: Array.from(readIds),
+                readChapterNumbers: Array.from(readNums),
+                totalChaptersRead: Math.max(0, readNums.size || readIds.size),
+              };
+            }
+          }
+          return { library: next };
+        }),
+
+      markChaptersUpTo: (mangaId, targetChapterNumber, allChapters = []) =>
+        set((state) => {
+          const next = { ...state.library };
+          const targetNum = parseFloat(targetChapterNumber.replace(/[^0-9.]/g, ""));
+          if (isNaN(targetNum)) return state;
+
+          for (const key of Object.keys(next)) {
+            if (next[key].manga.id === mangaId || key.endsWith(`:${mangaId}`)) {
+              const readIds = new Set(next[key].readChapterIds || []);
+              const readNums = new Set(next[key].readChapterNumbers || []);
+
+              for (const ch of allChapters) {
+                const chNum = parseFloat(String(ch.number).replace(/[^0-9.]/g, ""));
+                if (!isNaN(chNum) && chNum <= targetNum) {
+                  readIds.add(ch.id);
+                  const cleanNum = String(ch.number).replace(/[^0-9.]/g, "");
+                  if (cleanNum) readNums.add(cleanNum);
+                }
+              }
+
+              next[key] = {
+                ...next[key],
+                lastReadChapterNumber: targetChapterNumber,
+                readChapterIds: Array.from(readIds),
+                readChapterNumbers: Array.from(readNums),
+                totalChaptersRead: Math.max(next[key].totalChaptersRead || 0, readNums.size),
+              };
+            }
+          }
+          return { library: next };
+        }),
+
+      relinkManga: (oldKey, newSource, newId, newTitle, newCover) =>
+        set((state) => {
+          const oldEntry = state.library[oldKey];
+          if (!oldEntry) return state;
+
+          const nextLibrary = { ...state.library };
+          delete nextLibrary[oldKey];
+
+          const newKey = `${newSource}:${newId}`;
+          nextLibrary[newKey] = {
+            ...oldEntry,
+            manga: {
+              ...oldEntry.manga,
+              id: newId,
+              source: newSource,
+              slug: newId,
+              title: newTitle || oldEntry.manga.title,
+              coverUrl: newCover || oldEntry.manga.coverUrl,
+              isExternal: false,
+            },
+          };
+
+          const nextStats = { ...state.stats };
+          if (nextStats[oldKey]) {
+            const oldStat = nextStats[oldKey];
+            delete nextStats[oldKey];
+            nextStats[newKey] = {
+              ...oldStat,
+              mangaId: newId,
+              source: newSource,
+              mangaTitle: newTitle || oldStat.mangaTitle,
+              mangaCover: newCover || oldStat.mangaCover,
+            };
+          }
+
+          return { library: nextLibrary, stats: nextStats };
+        }),
+
       isInLibrary: (mangaId) => {
         const lib = get().library;
         return Object.values(lib).some((entry) => entry.manga.id === mangaId);
@@ -145,26 +275,20 @@ export const useAppStore = create<AppState>()(
       stats: {},
       recordReadingTime: (mangaId, source, mangaTitle, mangaCover, seconds) =>
         set((state) => {
+          if (seconds <= 0) return state;
           const key = `${source}:${mangaId}`;
-          const current = state.stats[key] || {
-            mangaId,
-            source,
-            mangaTitle,
-            mangaCover,
-            totalSeconds: 0,
-            sessionsCount: 0,
-            lastReadTimestamp: Date.now(),
-          };
+          const current = state.stats[key];
 
           return {
             stats: {
               ...state.stats,
               [key]: {
-                ...current,
-                mangaTitle: mangaTitle || current.mangaTitle,
-                mangaCover: mangaCover || current.mangaCover,
-                totalSeconds: current.totalSeconds + seconds,
-                sessionsCount: current.sessionsCount + 1,
+                mangaId,
+                source,
+                mangaTitle,
+                mangaCover,
+                totalSeconds: (current?.totalSeconds || 0) + seconds,
+                sessionsCount: (current?.sessionsCount || 0) + 1,
                 lastReadTimestamp: Date.now(),
               },
             },
@@ -178,8 +302,7 @@ export const useAppStore = create<AppState>()(
           const nextStats = mode === "replace" ? {} : { ...state.stats };
 
           for (const m of mangas) {
-            // Determine source & id (taking into account auto-matcher resolution)
-            let mappedSource: SourceId = m.matchedSource || "olympus";
+            let mappedSource: SourceId = m.matchedSource || "external";
             let cleanId = m.matchedId || "";
             const finalTitle = m.matchedTitle || m.title;
             const isKnownSource =
@@ -194,24 +317,71 @@ export const useAppStore = create<AppState>()(
 
               if (sName.includes("dragon") || sUrl.includes("dragontranslation")) {
                 mappedSource = "dragon";
-              } else if (sName.includes("dex") || sUrl.includes("mangadex")) {
-                mappedSource = "mangadex";
-              } else if (sName.includes("olympus") || sUrl.includes("olympus")) {
-                mappedSource = "olympus";
-              } else {
-                mappedSource = "olympus";
-              }
-
-              cleanId =
-                m.url
+                cleanId = m.url
                   .replace(/^https?:\/\/[^/]+/, "")
                   .replace(/^\/+|\/+$/g, "")
+                  .replace(/^manga\//, "")
+                  .replace(/^series\//, "")
                   .split("/")
                   .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              } else if (sName.includes("dex") || sUrl.includes("mangadex")) {
+                mappedSource = "mangadex";
+                const uuidMatch = m.url.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+                cleanId = uuidMatch
+                  ? uuidMatch[0]
+                  : m.url
+                      .replace(/^https?:\/\/[^/]+/, "")
+                      .replace(/^\/+|\/+$/g, "")
+                      .split("/")
+                      .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              } else if (sName.includes("olympus") || sUrl.includes("olympus")) {
+                mappedSource = "olympus";
+                cleanId = m.url
+                  .replace(/^https?:\/\/[^/]+/, "")
+                  .replace(/^\/+|\/+$/g, "")
+                  .replace(/^series\//, "")
+                  .replace(/^comic\//, "")
+                  .split("/")
+                  .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                cleanId = cleanId.replace(/^comic-/, "");
+              } else {
+                // External source (e.g. ZonaTMO) - keep as external!
+                mappedSource = "external";
+                cleanId =
+                  m.url
+                    .replace(/^https?:\/\/[^/]+/, "")
+                    .replace(/^\/+|\/+$/g, "")
+                    .split("/")
+                    .pop() || m.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+              }
             }
 
             const key = `${mappedSource}:${cleanId}`;
             const isCompleted = m.totalChapters > 0 && m.readChapters >= m.totalChapters;
+
+            // Extract read chapter numbers and URLs from Mihon history
+            const readChapterNumbers = (m.chapters || [])
+              .filter((c) => c.read)
+              .map((c) => {
+                if (c.chapterNumber && c.chapterNumber > 0) return String(c.chapterNumber);
+                const match = c.name?.match(/(\d+(\.\d+)?)/);
+                return match ? match[1] : c.name || "";
+              })
+              .filter(Boolean);
+
+            const readChapterIds = (m.chapters || [])
+              .filter((c) => c.read)
+              .map((c) => c.url)
+              .filter(Boolean);
+
+            const savedChapters: ChapterItem[] = (m.chapters || []).map((c) => ({
+              id: c.url || c.name,
+              mangaId: cleanId,
+              source: mappedSource,
+              number: String(c.chapterNumber || c.name.replace(/[^0-9.]/g, "") || "0"),
+              title: c.name || `Capítulo ${c.chapterNumber}`,
+              read: c.read,
+            }));
 
             nextLibrary[key] = {
               manga: {
@@ -222,14 +392,17 @@ export const useAppStore = create<AppState>()(
                 coverUrl: m.thumbnailUrl || "",
                 synopsis: m.description,
                 originalSource: m.sourceName || undefined,
-                isExternal: !isKnownSource,
+                isExternal: mappedSource === "external" || !isKnownSource,
               },
               addedAt: Date.now(),
               status: isCompleted ? "completed" : "reading",
-              totalChaptersRead: m.readChapters,
+              totalChaptersRead: Math.max(m.readChapters, readChapterNumbers.length),
               lastReadChapterNumber:
                 m.lastReadChapterName || (m.readChapters > 0 ? String(m.readChapters) : undefined),
               lastReadAt: m.lastReadTimestamp || Date.now(),
+              readChapterNumbers,
+              readChapterIds,
+              savedChapters: savedChapters.length > 0 ? savedChapters : undefined,
             };
 
             // Register in reading stats if readChapters > 0 or has realReadingSeconds

@@ -14,24 +14,47 @@ function normalizeTitle(str: string): string {
     .trim();
 }
 
+const STOP_WORDS = new Set([
+  "el", "la", "los", "las", "un", "una", "de", "del", "en", "y", "a", "al",
+  "the", "an", "of", "in", "and", "to", "for", "with", "no", "por"
+]);
+
 function calculateMatchScore(query: string, candidate: string): number {
   const normQuery = normalizeTitle(query);
   const normCand = normalizeTitle(candidate);
 
+  // Exact normalized match
   if (normQuery === normCand) return 1.0;
-  if (normCand.includes(normQuery) || normQuery.includes(normCand)) return 0.85;
 
-  const queryWords = normQuery.split(" ").filter((w) => w.length > 2);
-  const candWords = normCand.split(" ").filter((w) => w.length > 2);
+  // Subtitle match (e.g. "Solo Leveling" vs "Solo Leveling Ragnarok")
+  if (normCand.startsWith(normQuery + " ") || normQuery.startsWith(normCand + " ")) {
+    if (Math.min(normQuery.length, normCand.length) >= 6) {
+      return 0.88;
+    }
+  }
 
-  if (queryWords.length === 0 || candWords.length === 0) return 0;
+  const queryWords = normQuery.split(" ").filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+  const candWords = normCand.split(" ").filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+
+  if (queryWords.length === 0 || candWords.length === 0) {
+    return normQuery === normCand ? 1.0 : 0;
+  }
+
+  // Prevent single common words from matching long compound titles
+  if (queryWords.length === 1 && candWords.length > 1) {
+    return 0;
+  }
+  if (candWords.length === 1 && queryWords.length > 1) {
+    return 0;
+  }
 
   let common = 0;
   for (const w of queryWords) {
     if (candWords.includes(w)) common++;
   }
 
-  return common / Math.max(queryWords.length, candWords.length);
+  // Dice coefficient: (2 * common) / (queryWords.length + candWords.length)
+  return (2 * common) / (queryWords.length + candWords.length);
 }
 
 export async function POST(req: NextRequest) {
@@ -59,7 +82,7 @@ export async function POST(req: NextRequest) {
 
         for (const item of searchResult.items || []) {
           const score = calculateMatchScore(title, item.title);
-          if (score > highestScore && score >= 0.5) {
+          if (score > highestScore && score >= 0.78) {
             highestScore = score;
             bestMatch = item;
             if (score === 1.0) break;

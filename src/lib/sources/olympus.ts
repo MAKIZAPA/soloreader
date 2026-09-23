@@ -216,16 +216,59 @@ export class OlympusSource implements SourceProvider {
 
   async getDetails(idOrSlug: string): Promise<MangaDetails> {
     const { baseUrl, panelUrl } = await resolveDomain();
-    const cleanSlug = idOrSlug.replace(/^comic-/, "");
+    let cleanSlug = idOrSlug.replace(/^comic-/, "").replace(/^\/+|\/+$/g, "");
 
     // 1. Fetch metadata
-    const metaRes = await fetch(`${baseUrl}/api/series/${cleanSlug}?type=comic`, {
+    let metaRes = await fetch(`${baseUrl}/api/series/${cleanSlug}?type=comic`, {
       headers: {
         ...HEADERS,
         Referer: `${baseUrl}/`,
       },
       signal: AbortSignal.timeout(10000),
     });
+
+    if (!metaRes.ok) {
+      // Slug might have changed or been formatted differently in Mihon
+      const allSeries = await this.fetchSeriesCache();
+      const normInput = cleanSlug.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const found = allSeries.find((s) => {
+        const normSlug = s.slug.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const normName = s.name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        return (
+          normSlug === normInput ||
+          normName === normInput ||
+          normSlug.includes(normInput) ||
+          normInput.includes(normSlug) ||
+          String(s.id) === cleanSlug
+        );
+      });
+
+      if (found && found.slug !== cleanSlug) {
+        cleanSlug = found.slug;
+        metaRes = await fetch(`${baseUrl}/api/series/${cleanSlug}?type=comic`, {
+          headers: {
+            ...HEADERS,
+            Referer: `${baseUrl}/`,
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+      }
+    }
+
+    if (!metaRes.ok) {
+      // Fallback: search by query
+      const searchRes = await this.search(cleanSlug.replace(/-/g, " "), 1);
+      if (searchRes.items.length > 0 && searchRes.items[0].slug && searchRes.items[0].slug !== cleanSlug) {
+        cleanSlug = searchRes.items[0].slug;
+        metaRes = await fetch(`${baseUrl}/api/series/${cleanSlug}?type=comic`, {
+          headers: {
+            ...HEADERS,
+            Referer: `${baseUrl}/`,
+          },
+          signal: AbortSignal.timeout(10000),
+        });
+      }
+    }
 
     if (!metaRes.ok) {
       throw new Error(`Olympus details failed: ${metaRes.status}`);

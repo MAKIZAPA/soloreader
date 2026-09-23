@@ -161,10 +161,12 @@ describe("Mihon Backup Parser & Store Integration", () => {
     expect(matched.manga.originalSource).toBe("ZonaTMO");
     expect(matched.totalChaptersRead).toBe(180);
 
-    // The unmatched manga should still be preserved with original data
+    // The unmatched manga should still be preserved with original data and marked as external
     const entries = Object.values(library);
     const unmatched = entries.find((e) => e.manga.title === "Obra Rara Sin Fuente Activa");
     expect(unmatched).toBeDefined();
+    expect(unmatched?.manga.source).toBe("external");
+    expect(unmatched?.manga.isExternal).toBe(true);
     expect(unmatched?.manga.originalSource).toBe("ZonaTMO");
     expect(unmatched?.totalChaptersRead).toBe(15);
   });
@@ -203,5 +205,46 @@ describe("Mihon Backup Parser & Store Integration", () => {
     expect(stats[togKey].totalSeconds).toBe(400);
     expect(stats[togKey].lastReadTimestamp).toBe(1700005000000);
   });
+
+  it("extracts all read chapter numbers and supports toggleChapterRead and relinkManga", () => {
+    const mangas = [
+      {
+        sourceId: "9999",
+        sourceName: "ZonaTMO",
+        url: "/viewer/unlinked-manga",
+        title: "Obra Externa",
+        favorite: true,
+        totalChapters: 10,
+        readChapters: 3,
+        chapters: [
+          { name: "Capítulo 1", url: "/read/1", read: true, chapterNumber: 1, lastPageRead: 0 },
+          { name: "Capítulo 2", url: "/read/2", read: true, chapterNumber: 2, lastPageRead: 0 },
+          { name: "Capítulo 3", url: "/read/3", read: true, chapterNumber: 3, lastPageRead: 0 },
+          { name: "Capítulo 4", url: "/read/4", read: false, chapterNumber: 4, lastPageRead: 0 },
+        ],
+      },
+    ];
+
+    useAppStore.getState().importMihonBackup(mangas, "replace");
+    const entry = useAppStore.getState().library["external:unlinked-manga"];
+    expect(entry).toBeDefined();
+    expect(entry.readChapterNumbers).toEqual(["1", "2", "3"]);
+    expect(entry.savedChapters?.length).toBe(4);
+
+    // Toggle chapter 4 as read
+    useAppStore.getState().toggleChapterRead("unlinked-manga", "/read/4", "4");
+    const updatedEntry = useAppStore.getState().library["external:unlinked-manga"];
+    expect(updatedEntry.readChapterNumbers).toContain("4");
+
+    // Relink to Olympus
+    useAppStore.getState().relinkManga("external:unlinked-manga", "olympus", "obra-online", "Obra Online", "https://example.com/cover.webp");
+    expect(useAppStore.getState().library["external:unlinked-manga"]).toBeUndefined();
+    const relinked = useAppStore.getState().library["olympus:obra-online"];
+    expect(relinked).toBeDefined();
+    expect(relinked.manga.source).toBe("olympus");
+    expect(relinked.manga.title).toBe("Obra Online");
+    expect(relinked.readChapterNumbers).toContain("4");
+  });
 });
+
 

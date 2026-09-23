@@ -135,7 +135,18 @@ export class MangaDexSource implements SourceProvider {
   }
 
   async getDetails(id: string): Promise<MangaDetails> {
-    const url = `${MANGADEX_API}/manga/${id}?includes[]=cover_art&includes[]=author`;
+    let targetId = id.trim();
+    const uuidMatch = id.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    if (uuidMatch) {
+      targetId = uuidMatch[0];
+    } else {
+      const searchRes = await this.search(id.replace(/-/g, " "), 1);
+      if (searchRes.items.length > 0 && searchRes.items[0].id) {
+        targetId = searchRes.items[0].id;
+      }
+    }
+
+    const url = `${MANGADEX_API}/manga/${targetId}?includes[]=cover_art&includes[]=author`;
     const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`MangaDex details error: ${res.status}`);
 

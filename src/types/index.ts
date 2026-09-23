@@ -1,4 +1,4 @@
-export type SourceId = "olympus" | "dragon" | "mangadex" | "local";
+export type SourceId = "olympus" | "dragon" | "mangadex" | "local" | "external";
 
 export interface MangaItem {
   id: string;
@@ -29,9 +29,10 @@ export interface ChapterItem {
   mangaId: string;
   source: SourceId;
   number: string;
-  title?: string;
+  title: string;
   date?: string;
   scanlator?: string;
+  read?: boolean;
   url?: string;
 }
 
@@ -81,6 +82,9 @@ export interface LibraryEntry {
   lastReadAt?: number;
   lastReadPage?: number;
   totalChaptersRead: number;
+  readChapterIds?: string[];
+  readChapterNumbers?: string[];
+  savedChapters?: ChapterItem[];
 }
 
 export interface HistoryEntry {

@@ -105,10 +105,20 @@ export class DragonTranslationSource implements SourceProvider {
   }
 
   async getDetails(idOrSlug: string): Promise<MangaDetails> {
-    const cleanSlug = idOrSlug.replace(/\/$/, "");
-    const url = `${BASE_URL}/manga/${cleanSlug}/`;
+    let cleanSlug = idOrSlug.replace(/^\/+|\/+$/g, "").replace(/^manga\//, "").replace(/^series\//, "");
+    let url = `${BASE_URL}/manga/${cleanSlug}/`;
 
-    const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
+    let res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
+    if (!res.ok) {
+      // Fallback: search by query
+      const searchRes = await this.search(cleanSlug.replace(/-/g, " "), 1);
+      if (searchRes.items.length > 0 && searchRes.items[0].id) {
+        cleanSlug = searchRes.items[0].id.replace(/^\/+|\/+$/g, "").replace(/^manga\//, "").replace(/^series\//, "");
+        url = `${BASE_URL}/manga/${cleanSlug}/`;
+        res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(10000) });
+      }
+    }
+
     if (!res.ok) throw new Error(`Dragon details error: ${res.status}`);
 
     const html = await res.text();

@@ -3,7 +3,7 @@ import { olympusSource } from "./olympus";
 import { dragonSource } from "./dragon";
 import { mangaDexSource } from "./mangadex";
 
-export const sources: Record<Exclude<SourceId, "local">, SourceProvider> = {
+export const sources: Record<Exclude<SourceId, "local" | "external">, SourceProvider> = {
   olympus: olympusSource,
   dragon: dragonSource,
   mangadex: mangaDexSource,
