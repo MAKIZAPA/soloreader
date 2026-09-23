@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import {
-  Compass,
   Bookmark,
   Clock,
   TrendingUp,
@@ -11,12 +10,12 @@ import {
   ChevronRight,
   BookOpen,
   Trash2,
-  FolderUp,
   ShieldCheck,
   BarChart3,
   Trophy,
   ArrowUpRight,
   Layers,
+  CheckCircle2,
 } from "lucide-react";
 import { MangaItem } from "@/types";
 import { useAppStore } from "@/lib/store";
@@ -49,6 +48,8 @@ export default function HomePage() {
 
   const [activeTab, setActiveTab] = useState<"explore" | "library" | "history" | "stats">("explore");
   const [catalogView, setCatalogView] = useState<"popular" | "latest">("popular");
+  const [statusFilter, setStatusFilter] = useState<"all" | "ongoing" | "completed">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "manhwa" | "novel">("all");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<MangaItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +101,25 @@ export default function HomePage() {
     setCatalogView(view);
     setPage(1);
   };
+
+  // Filtered catalog items (status & format type)
+  const displayedItems = items.filter((item) => {
+    if (statusFilter !== "all") {
+      if (item.status && item.status !== statusFilter) return false;
+      if (!item.status && statusFilter === "completed") return false;
+    }
+    if (typeFilter !== "all") {
+      const titleLower = item.title.toLowerCase();
+      const isNovel =
+        titleLower.includes("novela") ||
+        item.source === "rncalation" ||
+        item.genres?.some((g) => g.toLowerCase().includes("novel"));
+
+      if (typeFilter === "novel" && !isNovel) return false;
+      if (typeFilter === "manhwa" && isNovel) return false;
+    }
+    return true;
+  });
 
   // Filtered library
   const libraryEntries = Object.values(library);
@@ -167,98 +187,6 @@ export default function HomePage() {
 
       {/* Main Container */}
       <main className="mx-auto flex-1 w-full max-w-7xl px-4 py-6 sm:px-6">
-        {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-neutral-800/80 pb-4 mb-6">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab("explore")}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition border",
-                activeTab === "explore"
-                  ? "bg-neutral-900 text-white border-neutral-700 shadow-xs"
-                  : "bg-transparent text-neutral-400 border-transparent hover:text-white hover:bg-neutral-900/50"
-              )}
-            >
-              <Compass className="size-4 text-emerald-400" />
-              <span>Explorar</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("library")}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition border",
-                activeTab === "library"
-                  ? "bg-neutral-900 text-white border-neutral-700 shadow-xs"
-                  : "bg-transparent text-neutral-400 border-transparent hover:text-white hover:bg-neutral-900/50"
-              )}
-            >
-              <Bookmark className="size-4 text-cyan-400" />
-              <span>Biblioteca</span>
-              {libraryEntries.length > 0 && (
-                <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 text-[10px] text-cyan-300 font-mono border border-cyan-500/30">
-                  {libraryEntries.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("history")}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition border",
-                activeTab === "history"
-                  ? "bg-neutral-900 text-white border-neutral-700 shadow-xs"
-                  : "bg-transparent text-neutral-400 border-transparent hover:text-white hover:bg-neutral-900/50"
-              )}
-            >
-              <Clock className="size-4 text-neutral-300" />
-              <span>Historial</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab("stats")}
-              className={cn(
-                "flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition border",
-                activeTab === "stats"
-                  ? "bg-neutral-900 text-white border-neutral-700 shadow-xs"
-                  : "bg-transparent text-neutral-400 border-transparent hover:text-white hover:bg-neutral-900/50"
-              )}
-            >
-              <BarChart3 className="size-4 text-amber-400" />
-              <span>Estadísticas</span>
-              {statsList.length > 0 && (
-                <span className="rounded-full bg-amber-500/20 px-1.5 py-0.2 text-[10px] text-amber-300 font-mono border border-amber-500/30">
-                  {statsList.length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Quick Local & Legal Buttons for desktop */}
-          <div className="hidden sm:flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLocalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-neutral-900/80 px-2.5 py-1.5 text-xs text-neutral-300 border border-neutral-800 hover:border-neutral-700 hover:text-white transition"
-            >
-              <FolderUp className="size-3.5 text-neutral-400" />
-              <span>Lector Offline</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setLegalOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg bg-neutral-900/80 px-2.5 py-1.5 text-xs text-neutral-300 border border-neutral-800 hover:border-neutral-700 hover:text-white transition"
-            >
-              <ShieldCheck className="size-3.5 text-emerald-400" />
-              <span>DMCA</span>
-            </button>
-          </div>
-        </div>
-
         {/* TAB 1: EXPLORE */}
         {activeTab === "explore" && (
           <div className="space-y-6">
@@ -279,16 +207,17 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* View Subtabs & Source Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-neutral-950 p-3 rounded-2xl border border-neutral-800/80">
-              <div className="flex items-center gap-1.5">
+            {/* View Subtabs, Status Filter & Source Info */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-neutral-950 p-3 rounded-2xl border border-neutral-800/80">
+              {/* Left: View selector (Populares / Últimos) */}
+              <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
                   onClick={() => handleCatalogViewChange("popular")}
                   className={cn(
                     "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition",
                     catalogView === "popular"
-                      ? "bg-neutral-800 text-white shadow-xs"
+                      ? "bg-neutral-800 text-white shadow-xs font-bold"
                       : "text-neutral-400 hover:text-white"
                   )}
                 >
@@ -302,7 +231,7 @@ export default function HomePage() {
                   className={cn(
                     "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition",
                     catalogView === "latest"
-                      ? "bg-neutral-800 text-white shadow-xs"
+                      ? "bg-neutral-800 text-white shadow-xs font-bold"
                       : "text-neutral-400 hover:text-white"
                   )}
                 >
@@ -311,9 +240,98 @@ export default function HomePage() {
                 </button>
               </div>
 
+              {/* Middle: Status & Type Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Status Filter (En emisión / Finalizado) */}
+                <div className="flex items-center rounded-xl bg-neutral-900/90 p-1 border border-neutral-800 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter("all")}
+                    className={cn(
+                      "px-2.5 py-1 text-[11px] font-medium rounded-lg transition",
+                      statusFilter === "all"
+                        ? "bg-neutral-800 text-white shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter("ongoing")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-lg transition",
+                      statusFilter === "ongoing"
+                        ? "bg-emerald-950 text-emerald-300 border border-emerald-800/50 shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>En emisión</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStatusFilter("completed")}
+                    className={cn(
+                      "flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-lg transition",
+                      statusFilter === "completed"
+                        ? "bg-sky-950 text-sky-300 border border-sky-800/50 shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    <CheckCircle2 className="size-3 text-sky-400" />
+                    <span>Finalizados</span>
+                  </button>
+                </div>
+
+                {/* Type/Format Selector (Manhwa / Novelas) */}
+                <div className="flex items-center rounded-xl bg-neutral-900/90 p-1 border border-neutral-800 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setTypeFilter("all")}
+                    className={cn(
+                      "px-2 py-1 text-[11px] font-medium rounded-lg transition",
+                      typeFilter === "all"
+                        ? "bg-neutral-800 text-white shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    Todos
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTypeFilter("manhwa")}
+                    className={cn(
+                      "px-2 py-1 text-[11px] font-medium rounded-lg transition",
+                      typeFilter === "manhwa"
+                        ? "bg-purple-950 text-purple-300 border border-purple-800/50 shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    Manhwa
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTypeFilter("novel")}
+                    className={cn(
+                      "px-2 py-1 text-[11px] font-medium rounded-lg transition",
+                      typeFilter === "novel"
+                        ? "bg-amber-950 text-amber-300 border border-amber-800/50 shadow-xs font-semibold"
+                        : "text-neutral-400 hover:text-white"
+                    )}
+                  >
+                    Novelas
+                  </button>
+                </div>
+              </div>
+
+              {/* Right: Active Source Info & Counter */}
               <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono">
-                <span>Fuente activa:</span>
-                <span className="rounded bg-neutral-900 px-2 py-0.5 text-white font-bold uppercase tracking-wider border border-neutral-800">
+                <span>
+                  {displayedItems.length} {displayedItems.length === 1 ? "obra" : "obras"}
+                </span>
+                <span className="text-neutral-600">|</span>
+                <span className="rounded bg-neutral-900 px-2 py-0.5 text-white font-bold uppercase tracking-wider border border-neutral-800 text-[11px]">
                   {activeSource}
                 </span>
               </div>
@@ -321,10 +339,10 @@ export default function HomePage() {
 
             {/* Manga Grid */}
             <MangaGrid
-              items={items}
+              items={displayedItems}
               loading={loading}
-              emptyTitle="No hay series disponibles en esta sección"
-              emptyDescription="Prueba refrescando o cambiando entre Olympus y MangaDex."
+              emptyTitle="No hay series que coincidan con los filtros"
+              emptyDescription="Prueba seleccionando 'Todos los estados' o cambiando de fuente."
             />
 
             {/* Pagination Controls */}

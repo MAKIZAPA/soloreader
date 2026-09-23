@@ -497,6 +497,72 @@ export function Navbar({
             </a>
           </div>
         </div>
+
+        {/* Mobile Navigation Strip */}
+        {isHome && onSelectTab && (
+          <div className="flex md:hidden items-center justify-around border-t border-neutral-800/80 bg-neutral-950/95 px-2 py-1.5 overflow-x-auto gap-1">
+            <button
+              type="button"
+              onClick={() => handleTabClick("explore")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition shrink-0",
+                activeTab === "explore"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              <Compass className="size-3.5 text-emerald-400" />
+              <span>Explorar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleTabClick("library")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition shrink-0",
+                activeTab === "library"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              <Bookmark className="size-3.5 text-cyan-400" />
+              <span>Biblioteca</span>
+              {libraryCount > 0 && (
+                <span className="rounded-full bg-cyan-500/20 px-1.5 py-0.2 text-[10px] text-cyan-300 font-mono border border-cyan-500/30">
+                  {libraryCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleTabClick("history")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition shrink-0",
+                activeTab === "history"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              <Clock className="size-3.5 text-neutral-300" />
+              <span>Historial</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleTabClick("stats")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition shrink-0",
+                activeTab === "stats"
+                  ? "bg-neutral-800 text-white shadow-xs"
+                  : "text-neutral-400 hover:text-white"
+              )}
+            >
+              <BarChart3 className="size-3.5 text-amber-400" />
+              <span>Estadísticas</span>
+            </button>
+          </div>
+        )}
       </header>
 
       {/* Modals */}
