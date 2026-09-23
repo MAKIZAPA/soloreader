@@ -7,7 +7,7 @@ interface CachedDomain {
 }
 
 let cachedDomain: CachedDomain = {
-  baseUrl: "https://olympusbiblioteca.com",
+  baseUrl: "https://olympusxyz.com",
   panelUrl: "https://panel.olympusxyz.com",
   timestamp: 0,
 };
@@ -22,7 +22,7 @@ const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
   "Accept": "application/json, text/plain, */*",
-  "Referer": "https://olympusbiblioteca.com/",
+  "Referer": "https://olympusxyz.com/",
 };
 
 async function resolveDomain(): Promise<{ baseUrl: string; panelUrl: string }> {
@@ -315,16 +315,15 @@ export class OlympusSource implements SourceProvider {
           url: `${baseUrl}/capitulo/${ch.id}/comic-${cleanSlug}`,
         }));
 
-        // Fetch remaining chapters if paginated
-        const total = chJson.meta?.total || chapters.length;
-        if (total > chapters.length) {
-          const totalPages = Math.ceil(total / (chJson.meta?.per_page || 100));
+        // Fetch all remaining pages of chapters up to last_page
+        const lastPage = chJson.meta?.last_page || 1;
+        if (lastPage > 1) {
           const extraPromises = [];
-          for (let p = 2; p <= Math.min(totalPages, 5); p++) {
+          for (let p = 2; p <= Math.min(lastPage, 50); p++) {
             extraPromises.push(
               fetch(`${panelUrl}/api/series/${cleanSlug}/chapters?page=${p}&direction=desc&type=comic`, {
                 headers: { ...HEADERS, Referer: `${baseUrl}/` },
-                signal: AbortSignal.timeout(8000),
+                signal: AbortSignal.timeout(10000),
               })
                 .then((r) => r.json())
                 .catch(() => null)
@@ -348,6 +347,17 @@ export class OlympusSource implements SourceProvider {
             }
           }
         }
+
+        // Deduplicate chapters by ID
+        const seenIds = new Set<string>();
+        const uniqueChapters: ChapterItem[] = [];
+        for (const ch of chapters) {
+          if (!seenIds.has(ch.id)) {
+            seenIds.add(ch.id);
+            uniqueChapters.push(ch);
+          }
+        }
+        chapters = uniqueChapters;
       }
     } catch (e) {
       console.error("[Olympus] chapters fetch error:", e);
